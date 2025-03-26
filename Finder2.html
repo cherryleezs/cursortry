@@ -75,6 +75,151 @@
             -moz-osx-font-smoothing: grayscale;
         }
         
+        /* 泡泡标签样式 */
+        .bubble-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: relative;
+            min-height: 60px;
+        }
+
+        .bubble-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            background: rgba(240, 249, 255, 0.7);
+            color: #0ea5e9;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(186, 230, 253, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transform-origin: center center;
+            animation: bubble-float 3s ease-in-out infinite;
+            animation-delay: calc(var(--bubble-delay, 0) * 0.5s);
+        }
+
+        .bubble-tag::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            border-radius: 50%;
+            opacity: 0;
+            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+        }
+
+        .bubble-tag:active::before {
+            transform: translate(-50%, -50%) scale(3);
+            opacity: 0;
+            transition: transform 0.3s ease-out, opacity 0.5s ease-out;
+        }
+
+        .bubble-tag.level-1 {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            color: #0369a1;
+            border-color: #7dd3fc;
+            box-shadow: 0 4px 10px rgba(14, 165, 233, 0.15);
+        }
+
+        .bubble-tag.level-2 {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            color: #7e22ce;
+            border-color: #d8b4fe;
+            box-shadow: 0 4px 10px rgba(126, 34, 206, 0.15);
+        }   
+
+        .bubble-tag.level-3 {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #15803d;
+            border-color: #86efac;
+            box-shadow: 0 4px 10px rgba(21, 128, 61, 0.15);
+        }
+
+        @keyframes bubble-float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes bubble-pop {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            80% {
+                transform: scale(0.8);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes bubble-small-appear {
+            0% {
+                transform: scale(0) translateY(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1) translateY(-40px);
+                opacity: 0;
+            }
+        }
+
+        .small-bubble {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: rgba(14, 165, 233, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .skill-option {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-option::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+        }
+
+        .skill-option:active::after {
+            transform: translate(-50%, -50%) scale(2);
+             opacity: 0;
+         }
+         
         .notch {
             height: 34px;
             width: 50%;
@@ -130,6 +275,33 @@
             justify-content: space-around;
             align-items: center;
             border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .interest-bubble {
+            display: inline-block;
+            padding: 10px 18px;
+            background-color: rgba(240, 249, 255, 0.7);
+            color: #0ea5e9;
+            border-radius: 20px;
+            margin: 4px;
+            font-size: 14px;
+            border: 1px solid rgba(186, 230, 253, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        
+        .interest-bubble.selected {
+            background-color: #0ea5e9;
+            color: white;
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25);
+            border-color: transparent;
+        }
+        
+        .interest-bubble:active {
+            transform: scale(0.95);
         }
         
         .tab-button {
@@ -285,151 +457,6 @@
             background: rgba(0, 0, 0, 0.1);
             border-radius: 100px;
         }
-        
-        /* 泡泡标签样式 */
-        .bubble-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            position: relative;
-            min-height: 60px;
-        }
-
-        .bubble-tag {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 16px;
-            background: rgba(240, 249, 255, 0.7);
-            color: #0ea5e9;
-            border-radius: 20px;
-            font-size: 14px;
-            border: 1px solid rgba(186, 230, 253, 0.5);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            transform-origin: center center;
-            animation: bubble-float 3s ease-in-out infinite;
-            animation-delay: calc(var(--bubble-delay, 0) * 0.5s);
-        }
-
-        .bubble-tag::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, transparent 70%);
-            transform: translate(-50%, -50%) scale(0);
-            border-radius: 50%;
-            opacity: 0;
-            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
-        }
-
-        .bubble-tag:active::before {
-            transform: translate(-50%, -50%) scale(3);
-            opacity: 0;
-            transition: transform 0.3s ease-out, opacity 0.5s ease-out;
-        }
-
-        .bubble-tag.level-1 {
-            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-            color: #0369a1;
-            border-color: #7dd3fc;
-            box-shadow: 0 4px 10px rgba(14, 165, 233, 0.15);
-        }
-
-        .bubble-tag.level-2 {
-            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-            color: #7e22ce;
-            border-color: #d8b4fe;
-            box-shadow: 0 4px 10px rgba(126, 34, 206, 0.15);
-        }
-
-        .bubble-tag.level-3 {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-            color: #15803d;
-            border-color: #86efac;
-            box-shadow: 0 4px 10px rgba(21, 128, 61, 0.15);
-        }
-
-        @keyframes bubble-float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-5px);
-            }
-        }
-
-        @keyframes bubble-pop {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            80% {
-                transform: scale(0.8);
-                opacity: 0.8;
-            }
-            100% {
-                transform: scale(0);
-                opacity: 0;
-            }
-        }
-
-        @keyframes bubble-small-appear {
-            0% {
-                transform: scale(0) translateY(0);
-                opacity: 0;
-            }
-            50% {
-                opacity: 0.7;
-            }
-            100% {
-                transform: scale(1) translateY(-40px);
-                opacity: 0;
-            }
-        }
-
-        .small-bubble {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: rgba(14, 165, 233, 0.3);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .skill-option {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .skill-option::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            transition: transform 0.4s ease-out, opacity 0.4s ease-out;
-        }
-
-        .skill-option:active::after {
-            transform: translate(-50%, -50%) scale(2);
-            opacity: 0;
-        }
     </style>
 </head>
 <body class="bg-neutral-100 flex flex-wrap justify-center p-4">
@@ -484,7 +511,7 @@
             <span>14:22</span>
             <span>100%</span>
         </div>
-        <div class="pt-24 px-6 h-full pb-32">
+        <div class="pt-24 px-6 h-full">
             <h2 class="text-3xl font-bold mb-3 text-neutral-800">选择你感兴趣的领域</h2>
             <p class="text-neutral-600 mb-8 text-base">点击泡泡选择话题，并设定你的熟练程度</p>
             
@@ -611,214 +638,6 @@
         </div>
         <div class="home-indicator"></div>
     </div>
-
-    <!-- 首页 -->
-    <div id="home" class="screen bg-neutral-50">
-        <div class="notch"></div>
-        <div class="ios-status-bar">
-            <span>5G</span>
-            <span>14:22</span>
-            <span>100%</span>
-        </div>
-        <div class="pt-16 h-full pb-24">
-            <div class="px-6 mb-6">
-                <div class="flex justify-between items-center mb-6">
-                    <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-primary-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        <h1 class="text-2xl font-bold text-neutral-800">Finder</h1>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center icon-button badge">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                        </div>
-                        <div onclick="showScreen('profile')" class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full overflow-hidden shadow-md icon-button">
-                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=120&q=80" alt="用户头像" class="w-full h-full object-cover">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-2xl shadow-card p-5 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-semibold text-neutral-800">今日热门话题</h3>
-                        <span class="text-primary-600 text-sm font-medium">查看全部</span>
-                    </div>
-                    <div class="flex space-x-3 overflow-x-auto pb-2 custom-scrollbar">
-                        <div class="flex-shrink-0 w-24 h-28 bg-gradient-to-b from-primary-100 to-primary-50 rounded-xl flex flex-col items-center justify-center p-2 shadow-sm hover:shadow-md transition-all">
-                            <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
-                            </div>
-                            <span class="text-xs text-center font-medium text-primary-700">人工智能</span>
-                        </div>
-                        <div class="flex-shrink-0 w-24 h-28 bg-gradient-to-b from-green-100 to-green-50 rounded-xl flex flex-col items-center justify-center p-2 shadow-sm hover:shadow-md transition-all">
-                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m0 0a1 1 0 110 2 1 1 0 010-2zm0 7a1 1 0 110 2 1 1 0 010-2zm0 7a1 1 0 110 2 1 1 0 010-2z" />
-                                </svg>
-                            </div>
-                            <span class="text-xs text-center font-medium text-green-700">区块链</span>
-                        </div>
-                        <div class="flex-shrink-0 w-24 h-28 bg-gradient-to-b from-purple-100 to-purple-50 rounded-xl flex flex-col items-center justify-center p-2 shadow-sm hover:shadow-md transition-all">
-                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <span class="text-xs text-center font-medium text-purple-700">设计</span>
-                        </div>
-                        <div class="flex-shrink-0 w-24 h-28 bg-gradient-to-b from-secondary-100 to-secondary-50 rounded-xl flex flex-col items-center justify-center p-2 shadow-sm hover:shadow-md transition-all">
-                            <div class="w-12 h-12 bg-secondary-100 rounded-full flex items-center justify-center mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-secondary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <span class="text-xs text-center font-medium text-secondary-700">职场</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex flex-col space-y-2 pb-3">
-                    <div class="flex items-center">
-                        <h3 class="font-semibold text-neutral-800">最新问题</h3>
-                        <div class="flex-grow border-b border-neutral-200 ml-3"></div>
-                    </div>
-                </div>
-            </div>
-                    
-            <div class="pb-20 px-6 overflow-y-auto custom-scrollbar">
-                <div class="question-card bg-white shadow-card rounded-2xl p-5 mb-4">
-                    <div class="flex items-center mb-3">
-                        <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&auto=format&fit=crop&w=120&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
-                        <div>
-                            <h3 class="font-medium text-neutral-800">李明</h3>
-                            <p class="text-xs text-neutral-500">产品经理 @ 科技公司</p>
-                        </div>
-                        <div class="ml-auto text-xs text-neutral-400">10分钟前</div>
-                    </div>
-                    <div class="mb-4">
-                        <p class="text-neutral-800 font-medium mb-2">想了解产品设计与UI设计的区别，以及如何从UI转型到产品？</p>
-                        <p class="text-neutral-600 text-sm">我目前是一名UI设计师，但对产品设计很感兴趣，想了解两者的主要区别以及转型需要准备什么？</p>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div class="flex space-x-2">
-                            <span class="px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-xs font-medium">产品设计</span>
-                            <span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-medium">UI/UX</span>
-                            <span class="px-3 py-1 bg-green-50 text-green-600 rounded-full text-xs font-medium">职业规划</span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <span class="text-xs text-neutral-500">15</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="question-card bg-white shadow-card rounded-2xl p-5 mb-4" onclick="showScreen('answer')">
-                    <div class="flex items-center mb-3">
-                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=120&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
-                        <div>
-                            <h3 class="font-medium text-neutral-800">王小红</h3>
-                            <p class="text-xs text-neutral-500">初级设计师</p>
-                        </div>
-                        <div class="ml-auto text-xs text-neutral-400">2小时前</div>
-                    </div>
-                    <div class="mb-4">
-                        <p class="text-neutral-800 font-medium mb-2">如何提高UI设计技能？有哪些必看的学习资源？</p>
-                        <p class="text-neutral-600 text-sm">刚入行设计行业，想尽快提升自己的设计水平，请推荐一些学习路径和资源。</p>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div class="flex space-x-2">
-                            <span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-medium">UI设计</span>
-                            <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">学习资源</span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <span class="text-xs text-neutral-500">27</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="question-card bg-white shadow-card rounded-2xl p-5 mb-4">
-                    <div class="flex items-center mb-3">
-                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=120&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
-                        <div>
-                            <h3 class="font-medium text-neutral-800">张伟</h3>
-                            <p class="text-xs text-neutral-500">产品设计师 @ 创新工作室</p>
-                        </div>
-                        <div class="ml-auto text-xs text-neutral-400">昨天</div>
-                    </div>
-                    <div class="mb-4">
-                        <p class="text-neutral-800 font-medium mb-2">设计师和产品经理之间的职责界限应该如何划分？</p>
-                        <p class="text-neutral-600 text-sm">在项目中经常遇到职责不清的情况，导致工作效率低下，请问有什么好的协作方式？</p>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div class="flex space-x-2">
-                            <span class="px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-xs font-medium">团队协作</span>
-                            <span class="px-3 py-1 bg-secondary-50 text-secondary-600 rounded-full text-xs font-medium">职场</span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <span class="text-xs text-neutral-500">42</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <button onclick="showScreen('ask-question')" class="w-14 h-14 rounded-full bg-primary-600 fixed bottom-20 right-6 flex items-center justify-center shadow-xl hover:bg-primary-700 hover:shadow-2xl transition-all action-button">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-            </button>
-            
-            <div class="bottom-tab-bar">
-                <div class="tab-button flex flex-col items-center justify-center w-1/4">
-                    <div class="w-8 h-8 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
-                    <span class="text-xs font-medium text-primary-600">首页</span>
-                </div>
-                <div class="tab-button flex flex-col items-center justify-center w-1/4">
-                    <div class="w-8 h-8 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                        </svg>
-                    </div>
-                    <span class="text-xs font-medium text-neutral-400">消息</span>
-                </div>
-                <div class="tab-button flex flex-col items-center justify-center w-1/4">
-                    <div class="w-8 h-8 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                    </div>
-                    <span class="text-xs font-medium text-neutral-400">收藏</span>
-                </div>
-                <div class="tab-button flex flex-col items-center justify-center w-1/4" onclick="showScreen('profile')">
-                    <div class="w-8 h-8 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                    </div>
-                    <span class="text-xs font-medium text-neutral-400">我的</span>
-                </div>
-            </div>
-            
-            <div class="home-indicator"></div>
-        </div>
-    </div>
-
     <!-- 提问页面 -->
     <div id="ask-question" class="screen bg-white">
         <div class="notch"></div>
@@ -960,7 +779,7 @@
                         </div>
                         <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center ml-auto pulse-animation">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
                             </svg>
                         </div>
                     </div>
@@ -1221,7 +1040,7 @@
                         </button>
                         <button class="flex items-center space-x-1 text-neutral-600 icon-button ml-auto">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                             </svg>
                             <span>分享</span>
                         </button>
@@ -1400,7 +1219,7 @@
                             </div>
                             <div class="flex items-center text-neutral-500 text-xs">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                                 </svg>
                                 12
                             </div>
@@ -1452,11 +1271,6 @@
     </div>
 
     <script>
-        // 当前选中的标签
-        let currentTag = '';
-        let selectedTags = {};
-        let currentTagElement = null;
-
         /**
          * 显示指定屏幕
          * @param {string} screenId - 要显示的屏幕ID
@@ -1481,9 +1295,12 @@
             }, 500);
         }
         
-        /**
-         * 初始化泡泡标签
-         */
+        // 当前选中的标签
+        let currentTag = '';
+        let selectedTags = {};
+        let currentTagElement = null;
+
+        // 初始化泡泡标签
         function initBubbleTags() {
             const bubbleTags = document.querySelectorAll('.bubble-tag');
             bubbleTags.forEach((tag, index) => {
@@ -1519,10 +1336,7 @@
             });
         }
 
-        /**
-         * 选择熟练度
-         * @param {number} level - 熟练度级别
-         */
+        // 选择熟练度
         function selectSkillLevel(level) {
             // 记录选择
             selectedTags[currentTag] = level;
@@ -1554,10 +1368,7 @@
             }, 600);
         }
 
-        /**
-         * 创建泡泡破裂动画
-         * @param {HTMLElement} element - 泡泡元素
-         */
+        // 创建泡泡破裂动画
         function createBubblePop(element) {
             // 添加破裂动画
             element.style.animation = 'bubble-pop 0.6s forwards';
@@ -1592,9 +1403,7 @@
             }
         }
 
-        /**
-         * 关闭熟练度弹窗
-         */
+        // 关闭熟练度弹窗
         function closeSkillModal() {
             const modal = document.getElementById('skill-modal');
             modal.querySelector('.bg-white').classList.add('animate__animated', 'animate__zoomOut');
@@ -1605,10 +1414,8 @@
                 modal.querySelector('.bg-white').classList.add('animate__zoomIn');
             }, 300);
         }
-        
-        /**
-         * 更新已选择的兴趣泡泡数量
-         */
+
+        // 更新已选择的标签数量
         function updateSelectedCount() {
             const selectedCount = Object.keys(selectedTags).length;
             const countElement = document.getElementById('selected-count');
@@ -1616,38 +1423,26 @@
                 countElement.textContent = selectedCount;
             }
         }
-        
-        /**
-         * 清空所有已选择的泡泡标签
-         */
+
+        // 清空所有已选择的泡泡标签
         function clearAllBubbles() {
             const bubbleTags = document.querySelectorAll('.bubble-tag');
             bubbleTags.forEach(tag => {
                 tag.className = 'bubble-tag';
-                if (tag.dataset.tag) {
-                    tag.textContent = tag.dataset.tag;
-                }
+                tag.textContent = tag.dataset.tag;
                 tag.style.animation = '';
             });
-            
+    
             selectedTags = {};
             updateSelectedCount();
         }
 
-        /**
-         * 切换兴趣泡泡的选中状态（用于提问页面的普通标签）
-         * @param {HTMLElement} bubble - 兴趣泡泡元素
-         */
-        function toggleBubble(bubble) {
-            bubble.classList.toggle('selected');
-        }
-        
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化泡泡标签
             initBubbleTags();
-            
-            // 初始化选中计数
+    
+             // 其他初始化...
             updateSelectedCount();
             
             // 为所有交互元素添加涟漪效果

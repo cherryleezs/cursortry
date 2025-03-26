@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finder - 高效问答匹配平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#f59e0b',
+                        background: '#f8fafc',
+                        card: '#ffffff',
+                        accent: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .notch {
+            height: 30px;
+            width: 50%;
+            background-color: #000;
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 18px;
+            position: absolute;
+            top: 0;
+            left: 25%;
+            z-index: 1000;
+        }
+        
+        .ios-status-bar {
+            height: 44px;
+            width: 100%;
+            background-color: transparent;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            color: #000;
+            font-weight: 600;
+        }
+        
+        .screen {
+            display: none;
+            height: 812px;
+            width: 375px;
+            overflow: hidden;
+            position: relative;
+            border-radius: 40px;
+            background-color: #f8fafc;
+            margin: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .active-screen {
+            display: block;
+        }
+        
+        .bottom-tab-bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            height: 84px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .interest-bubble {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #f0f9ff;
+            color: #3b82f6;
+            border-radius: 20px;
+            margin: 4px;
+            font-size: 14px;
+            border: 1px solid #bfdbfe;
+            transition: all 0.2s;
+        }
+        
+        .interest-bubble.selected {
+            background-color: #3b82f6;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
+        }
+        
+        .navigation-btn {
+            cursor: pointer;
+        }
+        
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background-color: #000;
+            border-radius: 100px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-wrap justify-center p-4">
+    <!-- 页面导航控制 -->
+    <div class="fixed top-0 left-0 p-4 bg-white shadow-lg z-50 rounded-br-lg">
+        <div class="flex flex-col space-y-2">
+            <button onclick="showScreen('onboarding')" class="bg-blue-500 text-white px-4 py-2 rounded">引导页</button>
+            <button onclick="showScreen('interests')" class="bg-blue-500 text-white px-4 py-2 rounded">兴趣选择</button>
+            <button onclick="showScreen('home')" class="bg-blue-500 text-white px-4 py-2 rounded">首页</button>
+            <button onclick="showScreen('ask-question')" class="bg-blue-500 text-white px-4 py-2 rounded">提问页</button>
+            <button onclick="showScreen('matching')" class="bg-blue-500 text-white px-4 py-2 rounded">匹配中</button>
+            <button onclick="showScreen('answer')" class="bg-blue-500 text-white px-4 py-2 rounded">回答页</button>
+            <button onclick="showScreen('profile')" class="bg-blue-500 text-white px-4 py-2 rounded">个人主页</button>
+        </div>
+    </div>
+
+    <!-- 引导页 -->
+    <div id="onboarding" class="screen active-screen">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:22</span>
+            <span>100%</span>
+        </div>
+        <div class="pt-24 px-6 flex flex-col h-full justify-between pb-32">
+            <div>
+                <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80" alt="引导图片" class="w-64 h-64 object-cover mx-auto rounded-full shadow-2xl mb-8">
+                <h1 class="text-3xl font-bold text-center mb-4">欢迎来到 Finder</h1>
+                <p class="text-gray-600 text-center mb-8">在这里，你可以找到问题的答案，或者成为他人的解答者</p>
+                
+                <div class="flex mb-8">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full mx-1"></div>
+                    <div class="w-3 h-3 bg-gray-300 rounded-full mx-1"></div>
+                    <div class="w-3 h-3 bg-gray-300 rounded-full mx-1"></div>
+                </div>
+            </div>
+            
+            <button onclick="showScreen('interests')" class="bg-blue-500 text-white py-4 rounded-full font-bold text-lg shadow-lg">开始探索</button>
+        </div>
+        <div class="home-indicator"></div>
+    </div>
+
+    <!-- 兴趣标签选择页 -->
+    <div id="interests" class="screen">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:22</span>
+            <span>100%</span>
+        </div>
+        <div class="pt-20 px-6 h-full">
+            <h2 class="text-2xl font-bold mb-3">选择你感兴趣的领域</h2>
+            <p class="text-gray-600 mb-6">可以像戳泡泡一样选择你擅长或感兴趣的话题</p>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">科技</h3>
+                <div>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">编程</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">人工智能</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">区块链</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">产品设计</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">UX/UI</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">生活</h3>
+                <div>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">美食</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">健身</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">旅行</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">阅读</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">电影</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">学习</h3>
+                <div>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">语言</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">数学</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">物理</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">心理学</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">历史</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">职场</h3>
+                <div>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">求职</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">面试</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">创业</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">管理</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">营销</span>
+                </div>
+            </div>
+            
+            <button onclick="showScreen('home')" class="bg-blue-500 text-white py-4 rounded-full font-bold text-lg shadow-lg w-full mt-8">完成</button>
+        </div>
+        <div class="home-indicator"></div>
+    </div>
+
+    <!-- 首页 -->
+    <div id="home" class="screen">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:22</span>
+            <span>100%</span>
+        </div>
+        <div class="pt-16 h-full pb-24">
+            <div class="px-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Finder</h1>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                        </div>
+                        <div onclick="showScreen('profile')" class="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80" alt="用户头像" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-4 mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold">今日热门话题</h3>
+                        <span class="text-blue-500 text-sm">查看全部</span>
+                    </div>
+                    <div class="flex space-x-2 overflow-x-auto pb-2">
+                        <div class="flex-shrink-0 w-24 h-24 bg-blue-100 rounded-lg flex flex-col items-center justify-center p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            <span class="text-xs text-center">人工智能</span>
+                        </div>
+                        <div class="flex-shrink-0 w-24 h-24 bg-green-100 rounded-lg flex flex-col items-center justify-center p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                            <span class="text-xs text-center">职场发展</span>
+                        </div>
+                        <div class="flex-shrink-0 w-24 h-24 bg-purple-100 rounded-lg flex flex-col items-center justify-center p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <span class="text-xs text-center">学习方法</span>
+                        </div>
+                        <div class="flex-shrink-0 w-24 h-24 bg-yellow-100 rounded-lg flex flex-col items-center justify-center p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-xs text-center">兴趣爱好</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-t-3xl flex-1 shadow-xl">
+                <div class="flex mb-6">
+                    <button class="flex-1 text-center py-2 border-b-2 border-blue-500 text-blue-500 font-medium">最新问题</button>
+                    <button class="flex-1 text-center py-2 text-gray-500">推荐问题</button>
+                </div>
+                
+                <div class="space-y-5">
+                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                        <div class="flex items-center mb-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80" alt="用户头像" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-medium">李明</h4>
+                                <div class="flex text-xs text-gray-500">
+                                    <span>5分钟前</span>
+                                    <span class="mx-1">•</span>
+                                    <span>产品设计</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mb-3">有人能推荐一些学习UI设计的优质资源吗？我是初学者，想系统学习。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex space-x-2">
+                                <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">UI设计</span>
+                                <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">学习资源</span>
+                            </div>
+                            <button onclick="showScreen('answer')" class="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-full">回答</button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                        <div class="flex items-center mb-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80" alt="用户头像" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-medium">王小花</h4>
+                                <div class="flex text-xs text-gray-500">
+                                    <span>20分钟前</span>
+                                    <span class="mx-1">•</span>
+                                    <span>职场</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mb-3">作为前端开发，如何快速适应一个新项目的技术栈？有什么好的学习方法推荐？</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex space-x-2">
+                                <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">前端开发</span>
+                                <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">技术栈</span>
+                            </div>
+                            <button onclick="showScreen('answer')" class="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-full">回答</button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                        <div class="flex items-center mb-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80" alt="用户头像" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-medium">张伟</h4>
+                                <div class="flex text-xs text-gray-500">
+                                    <span>1小时前</span>
+                                    <span class="mx-1">•</span>
+                                    <span>生活</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mb-3">有没有适合上班族的健身计划推荐？每天只有30分钟左右的运动时间。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex space-x-2">
+                                <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">健身</span>
+                                <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">时间管理</span>
+                            </div>
+                            <button onclick="showScreen('answer')" class="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-full">回答</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-tab-bar">
+            <div class="flex flex-col items-center text-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="text-xs mt-1">首页</span>
+            </div>
+            <div onclick="showScreen('ask-question')" class="flex flex-col items-center text-gray-400 navigation-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-xs mt-1">提问</span>
+            </div>
+            <div class="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center shadow-lg -mt-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            <div class="flex flex-col items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                <span class="text-xs mt-1">消息</span>
+            </div>
+            <div onclick="showScreen('profile')" class="flex flex-col items-center text-gray-400 navigation-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span class="text-xs mt-1">我的</span>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+    </div>
+
+    <!-- 提问页面 -->
+    <div id="ask-question" class="screen">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:22</span>
+            <span>100%</span>
+        </div>
+        <div class="pt-14 px-6 h-full">
+            <div class="flex items-center mb-6">
+                <button onclick="showScreen('home')" class="p-2 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <h2 class="text-xl font-bold">发起提问</h2>
+            </div>
+            
+            <div class="mb-6">
+                <textarea class="w-full rounded-xl border border-gray-300 p-4 h-40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="请描述你的问题，越详细越容易得到精准回答..."></textarea>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">AI 推荐相关问题</h3>
+                <div class="space-y-3">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <p class="text-blue-800 text-sm">如何学习产
+                  <div class="bg-blue-50 p-3 rounded-lg">
+                        <p class="text-blue-800 text-sm">成为UI设计师需要掌握哪些技能？</p>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <p class="text-blue-800 text-sm">设计师和产品经理的主要职责区别是什么？</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">添加标签</h3>
+                <p class="text-sm text-gray-500 mb-3">添加标签可以让更多相关领域的人看到你的问题</p>
+                <div class="flex flex-wrap">
+                    <span class="interest-bubble selected" onclick="toggleBubble(this)">产品设计</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">UI/UX</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">职业规划</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">入门学习</span>
+                    <span class="interest-bubble" onclick="toggleBubble(this)">设计工具</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">问题设置</h3>
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>回答时限</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-blue-500 mr-1">24小时</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span>匹配人数</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-blue-500 mr-1">3人</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="showScreen('matching')" class="bg-blue-500 text-white py-4 rounded-full font-bold text-lg shadow-lg w-full mt-8">发布问题</button>
+        </div>
+        <div class="home-indicator"></div>
+    </div>
+
+    <!-- 匹配中页面 -->
+    <div id="matching" class="screen">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:22</span>
+            <span>100%</span>
+        </div>
+        <div class="pt-14 px-6 h-full flex flex-col items-center justify-center">
+            <div class="relative w-48 h-48 mb-10">
+                <div class="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-25"></div>
+                <div class="relative flex items-center justify-center w-48 h-48 bg-blue-500 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <h2 class="text-2xl font-bold mb-3 text-center">正在寻找最佳回答者</h2>
+            <p class="text-gray-600 text-center mb-10">我们正在匹配最适合回答你问题的专业人士</p>
+            
+            <div class="w-full bg-white rounded-xl p-5 mb-6 shadow-md">
+                <h3 class="font-semibold mb-2">已找到的潜在匹配</h3>
+                <div class="flex items-center mb-3">
+                    <div class="w-12 h-12 rounded-full overflow-hidden mr-4">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="用户头像" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium">赵小红</h4>
+                        <div class="flex flex-wrap">
+                            <span class="mr-2 text-xs text-gray-500">产品设计师</span>
+                            <span class="mr-2 text-xs text-gray-500">UI专家</span>
+                        </div>
+                    </div>
+                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full overflow-hidden mr-4">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="用户头像" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium">李大壮</h4>
+                        <div class="flex flex-wrap">
+                            <span class="mr-2 text-xs text-gray-500">设计总监</span>
+                            <span class="mr-2 text-xs text-gray-500">5年经验</span>
+                        </div>
+                    </div>
+                    <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between w-full">
+                <button onclick="showScreen('home')" class="flex-1 py-3 text-blue-500 font-medium mr-3 border border-blue-500 rounded-full">取消</button>
+                <button onclick="showScreen('answer')" class="flex-1 py-3 bg-blue-500 text-white font-medium rounded-full">继续等待</button>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+    </div>
+
+    <!-- 回答页面 -->
+    <div id="answer" class="screen">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:22</span>
+            <span>100%</span>
+        </div>
+        <div class="pt-14 px-6 h-full pb-24">
+            <div class="flex items-center mb-6">
+                <button onclick="showScreen('home')" class="p-2 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h2 class="text-xl font-bold">问题详情</h2>
+            </div>
+            
+            <div class="bg-white rounded-xl p-4 shadow-md mb-6">
+                <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80" alt="用户头像" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h4 class="font-medium">李明</h4>
+                        <div class="flex text-xs text-gray-500">
+                            <span>5小时前</span>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="font-bold mb-3">有人能推荐一些学习UI设计的优质资源吗？我是初学者，想系统学习。</h3>
+                <p class="text-gray-700 mb-4">我最近想开始学习UI设计，但是网上的资源太多了，不知道从哪里开始比较好。希望能有一些系统的学习路径和高质量的教程推荐。我有一点点设计基础，但是对UI设计的工作流程和工具还不是很熟悉。</p>
+                
+                <div class="flex space-x-2 mb-4">
+                    <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">UI设计</span>
+                    <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">学习资源</span>
+                    <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">入门</span>
+                </div>
+                
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>328</span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                        <span>12</span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span>45</span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                        <span>分享</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h3 class="font-semibold mb-4">答案 (12)</h3>
+                
+                <div class="bg-white rounded-xl p-4 shadow-md mb-4">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80" alt="用户头像" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-medium">赵小红</h4>
+                            <div class="flex text-xs text-gray-500">
+                                <span>产品设计师</span>
+                                <span class="mx-1">•</span>
+                                <span>2小时前</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-yellow-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-700 mb-4">作为一名产品设计师，我强烈推荐以下学习资源：</p>
+                    <ol class="list-decimal list-inside mb-4 text-gray-700">
+                        <li class="mb-2">《设计即未来》- 这本书适合入门，讲解了设计思维的基本原则</li>
+                        <li class="mb-2">Figma官方教程 - 现在最流行的UI设计工具，界面友好，上手快</li>
+                        <li class="mb-2">DesignCode.io - 从基础到高级的视频教程，非常实用</li>
+                        <li class="mb-2">Daily UI挑战 - 每天完成一个UI设计挑战，持续90天</li>
+                    </ol>
+                    
+                    <p class="text-gray-700 mb-4">学习路径建议：先了解设计原则，然后掌握工具，最后通过实战项目提升能力。记得多观察优秀产品的设计，尝试理解背后的设计决策。</p>
+                    
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                            <span>125</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            <span>回复</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            </svg>
+                            <span>分享</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-4 shadow-md">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80" alt="用户头像" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-medium">李大壮</h4>
+                            <div class="flex text-xs text-gray-500">
+                                <span>设计总监</span>
+                                <span class="mx-1">•</span>
+                                <span>3小时前</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-yellow-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=继续拼接完整的 Finder.html 文件内容：
+
+```html:Finder.html
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </div>
+                    </div>
+                    
+                               
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-blue-800 mb-2">入门阶段</h4>
+                        <ul class="list-disc list-inside text-gray-700">
+                            <li>了解设计原则：色彩、排版、布局、对齐、对比</li>
+                            <li>学习基础工具：Figma或Sketch（推荐先学Figma，上手快且免费）</li>
+                            <li>阅读《UI设计模式》了解常见UI组件设计规范</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-blue-800 mb-2">进阶阶段</h4>
+                        <ul class="list-disc list-inside text-gray-700">
+                            <li>学习设计系统构建（Material Design或iOS设计规范）</li>
+                            <li>掌握交互设计原则和微交互</li>
+                            <li>学习用户研究方法和可用性测试</li>
+                        </ul>
+                    </div>
+                    
+                    <p class="text-gray-700 mb-4">推荐网站：Dribbble、Behance用于灵感获取；Medium上的UX Collective专栏；Nielsen Norman Group的研究文章。</p>
+                    
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                            <span>94</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            <span>回复</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            </svg>
+                            <span>分享</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg border-t border-gray-200">
+                <div class="flex">
+                    <input type="text" class="flex-1 p-3 bg-gray-100 rounded-full mr-3 focus:outline-none" placeholder="写下你的回答...">
+                    <button class="bg-blue-500 text-white p-3 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+    </div>
+
+    <!-- 个人主页 -->
+    <div id="profile" class="screen">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:22</span>
+            <span>100%</span>
+        </div>
+        <div class="pt-14 h-full pb-24">
+            <div class="px-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <button onclick="showScreen('home')" class="p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </button>
+                    <h2 class="text-xl font-bold">个人主页</h2>
+                    <button class="p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-blue-500 pb-6">
+                <div class="flex flex-col items-center pt-6 pb-8">
+                    <div class="w-24 h-24 rounded-full bg-white p-1 mb-4">
+                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=150&q=80" alt="用户头像" class="w-full h-full rounded-full object-cover">
+                    </div>
+                    <h3 class="text-white text-xl font-bold mb-1">张三</h3>
+                    <p class="text-blue-100 mb-3">产品经理 @ 科技公司</p>
+                    <div class="flex space-x-3">
+                        <div class="flex items-center bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span class="text-white text-sm">关注 128</span>
+                        </div>
+                        <div class="flex items-center bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <span class="text-white text-sm">粉丝 256</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-6 py-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg">擅长领域</h3>
+                    <span class="text-blue-500">编辑</span>
+                </div>
+                <div class="flex flex-wrap mb-6">
+                    <span class="interest-bubble selected">产品设计</span>
+                    <span class="interest-bubble selected">用户体验</span>
+                    <span class="interest-bubble selected">项目管理</span>
+                    <span class="interest-bubble selected">数据分析</span>
+                </div>
+                
+                <div class="flex justify-between mb-6">
+                    <div class="flex-1 text-center p-3 border-b-2 border-blue-500">
+                        <span class="block text-xl font-bold text-blue-500">42</span>
+                        <span class="text-sm text-gray-500">提问</span>
+                    </div>
+                    <div class="flex-1 text-center p-3">
+                        <span class="block text-xl font-bold">128</span>
+                        <span class="text-sm text-gray-500">回答</span>
+                    </div>
+                    <div class="flex-1 text-center p-3">
+                        <span class="block text-xl font-bold">3.8K</span>
+                        <span class="text-sm text-gray-500">获赞</span>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+                    <h3 class="font-bold mb-4">成就徽章</h3>
+                    <div class="flex justify-between">
+                        <div class="flex flex-col items-center">
+                            <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs text-center">智慧达人</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs text-center">行动迅速</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs text-center">影响力</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs text-center">优质回答</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold">我的提问</h3>
+                        <span class="text-blue-500">查看全部</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border-b border-gray-100 pb-4">
+                            <h4 class="font-medium mb-1">如何提高产品设计的效率？</h4>
+                            <div class="flex justify-between text-sm text-gray-500">
+                                <span>3天前</span>
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                    </svg>
+                                    <span>15回答</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-1">有哪些值得推荐的产品管理工具？</h4>
+                            <div class="flex justify-between text-sm text-gray-500">
+                                <span>1周前</span>
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                    </svg>
+                                    <span>32回答</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-tab-bar">
+            <div onclick="showScreen('home')" class="flex flex-col items-center text-gray-400 navigation-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="text-xs mt-1">首页</span>
+            </div>
+            <div onclick="showScreen('ask-question')" class="flex flex-col items-center text-gray-400 navigation-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-xs mt-1">提问</span>
+            </div>
+            <div class="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center shadow-lg -mt-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="
+
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            <div class="flex flex-col items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                <span class="text-xs mt-1">消息</span>
+            </div>
+            <div class="flex flex-col items-center text-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span class="text-xs mt-1">我的</span>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+    </div>
+
+    <script>
+        /**
+         * 显示指定的屏幕
+         * @param {string} screenId - 要显示的屏幕ID
+         */
+        function showScreen(screenId) {
+            // 隐藏所有屏幕
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active-screen');
+            });
+            
+            // 显示指定的屏幕
+            document.getElementById(screenId).classList.add('active-screen');
+        }
+        
+        /**
+         * 切换泡泡选择状态
+         * @param {HTMLElement} bubble - 要切换的泡泡元素
+         */
+        function toggleBubble(bubble) {
+            bubble.classList.toggle('selected');
+        }
+    </script>
+</body>
+</html>
