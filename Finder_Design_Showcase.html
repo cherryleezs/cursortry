@@ -196,243 +196,94 @@
             height: 100%;
             padding: 24px;
             position: relative;
-        }
-        
-        .ai-assistant {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background-color: #007aff;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
             display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
-            transition: all 0.3s ease;
-            animation: pulse 2s infinite;
+            flex-direction: column;
         }
         
-        .ai-assistant:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
-        }
-        
-        .ai-dialog {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            border-radius: 20px 20px 0 0;
-            padding: 20px;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            z-index: 100;
-            max-height: 80%;
-            overflow-y: auto;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .ai-dialog.show {
-            transform: translateY(0);
-        }
-        
-        .ai-dialog-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #f2f2f7;
-        }
-        
-        .ai-dialog-title {
-            font-size: 18px;
-            font-weight: 600;
+        .interest-title {
+            font-size: 28px;
+            font-weight: 700;
             color: #1d1d1f;
-        }
-        
-        .ai-close-button {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background-color: #f2f2f7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        
-        .ai-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 18px;
-            background-color: #007aff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-        }
-        
-        .ai-message-container {
-            display: flex;
             margin-bottom: 16px;
-            align-items: flex-start;
+            text-align: center;
         }
         
-        .ai-message-container.user {
-            flex-direction: row-reverse;
+        .tag-search-container {
+            position: relative;
+            margin-bottom: 20px;
         }
         
-        .ai-message {
-            background-color: #f2f2f7;
-            padding: 12px 16px;
-            border-radius: 18px;
-            border-top-left-radius: 4px;
-            margin-bottom: 12px;
-            max-width: 80%;
-        }
-        
-        .ai-message.user {
-            background-color: #007aff;
-            color: white;
-            border-top-left-radius: 18px;
-            border-top-right-radius: 4px;
-        }
-        
-        .ai-message-time {
-            font-size: 12px;
-            color: #86868b;
-            margin-top: 4px;
-            text-align: right;
-        }
-        
-        .ai-input {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-            position: sticky;
-            bottom: 0;
-            background-color: white;
-            padding-top: 12px;
-        }
-        
-        .ai-input input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #e5e5ea;
-            border-radius: 24px;
-            font-size: 16px;
-            background-color: #f2f2f7;
-        }
-        
-        .ai-input button {
-            background-color: #007aff;
-            color: white;
+        .tag-search-input {
+            width: 100%;
+            padding: 12px 40px 12px 40px;
+            border-radius: 16px;
             border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
+            background-color: #f2f2f7;
             font-size: 16px;
-            cursor: pointer;
+            color: #1d1d1f;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .tag-search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+        }
+        
+        .tag-search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #86868b;
+        }
+        
+        .tag-search-clear {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            background-color: #c7c7cc;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
+            cursor: pointer;
+            opacity: 0.8;
         }
         
-        .tag-recommendation {
-            background-color: #f2f2f7;
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 16px;
+        .tag-search-clear:hover {
+            opacity: 1;
         }
         
-        .tag-recommendation-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #1d1d1f;
-        }
-        
-        .tag-recommendation-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .recommended-tag {
+        .finder-tip {
             display: flex;
             align-items: center;
-            background-color: white;
-            border-radius: 16px;
-            padding: 8px 12px;
-            font-size: 14px;
-            color: #1d1d1f;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            gap: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            background-color: rgba(0, 122, 255, 0.1);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
         }
         
-        .recommended-tag:hover {
-            background-color: #e5f3ff;
-        }
-        
-        .recommended-tag.primary {
-            background-color: #e5f3ff;
+        .tip-icon {
+            margin-right: 12px;
             color: #007aff;
         }
         
-        .recommended-tag .add-icon {
-            color: #34c759;
-            font-size: 16px;
-        }
-        
-        .recommended-tag .check-icon {
-            color: #34c759;
-        }
-        
-        .user-level-selector {
-            margin-top: 24px;
-        }
-        
-        .user-level-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #1d1d1f;
-        }
-        
-        .level-options {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-        }
-        
-        .level-option {
-            flex-shrink: 0;
-            padding: 8px 16px;
-            border-radius: 16px;
+        .tip-text {
             font-size: 14px;
-            border: 1px solid #e5e5ea;
-            color: #86868b;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            color: #007aff;
+            line-height: 1.4;
         }
         
-        .level-option.selected {
-            background-color: #007aff;
-            color: white;
-            border-color: #007aff;
+        .tip-highlight {
+            font-weight: 600;
         }
         
         .category-selector {
-            margin-top: 32px;
+            margin-top: 16px;
         }
         
         .category-title {
@@ -483,59 +334,102 @@
             text-align: center;
         }
         
-        .interest-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1d1d1f;
-            margin-bottom: 24px;
-            text-align: center;
+        .search-results {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 8px 0;
+            display: none;
         }
         
-        .bubble-container {
+        .search-results.show {
+            display: block;
+        }
+        
+        .search-result-section {
+            padding: 8px 16px;
+        }
+        
+        .search-result-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #86868b;
+            margin-bottom: 8px;
+        }
+        
+        .search-result-item {
             display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: center;
-            margin-top: 40px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
         }
         
-        .bubble {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
+        .search-result-item:hover {
+            background-color: #f2f2f7;
+        }
+        
+        .search-result-name {
+            font-size: 16px;
+            color: #1d1d1f;
+        }
+        
+        .search-result-category {
+            font-size: 14px;
+            color: #86868b;
+            margin-top: 2px;
+        }
+        
+        .search-result-add {
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
             background-color: #007aff;
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            transition: all 0.2s ease;
         }
         
-        .bubble:hover {
+        .search-result-add:hover {
             transform: scale(1.1);
         }
         
-        .bubble.selected {
-            background-color: #34c759;
-            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+        .search-no-results {
+            padding: 24px;
+            text-align: center;
         }
         
-        .progress-bar {
-            width: 200px;
-            height: 4px;
-            background-color: #e5e5ea;
-            border-radius: 2px;
-            margin: 40px auto;
-            overflow: hidden;
+        .search-no-results-text {
+            font-size: 16px;
+            color: #86868b;
+            margin-bottom: 16px;
         }
         
-        .progress-fill {
-            height: 100%;
+        .search-no-results-action {
             background-color: #007aff;
-            transition: width 0.3s ease;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .search-no-results-action:hover {
+            background-color: #0071e3;
         }
         
         /* 首页样式 */
@@ -825,6 +719,443 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+        
+        /* AI助手界面样式 */
+        .ai-assistant {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background-color: #007aff;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            z-index: 10;
+        }
+        
+        .ai-assistant:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+        }
+        
+        .ai-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            transform: translateX(100%);
+        }
+        
+        .ai-screen.show {
+            transform: translateX(0);
+        }
+        
+        .ai-header {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e5e5ea;
+        }
+        
+        .ai-back {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .ai-back:hover {
+            background-color: #f2f2f7;
+        }
+        
+        .ai-title {
+            flex: 1;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+        
+        .ai-progress {
+            display: flex;
+            padding: 16px;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .ai-progress-step {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #86868b;
+        }
+        
+        .ai-progress-step.completed {
+            color: #34c759;
+        }
+        
+        .ai-progress-step.active {
+            color: #1d1d1f;
+            font-weight: 600;
+        }
+        
+        .ai-progress-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background-color: #86868b;
+            margin: 0 8px;
+        }
+        
+        .ai-progress-dot.completed {
+            background-color: #34c759;
+        }
+        
+        .ai-chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .ai-message-container {
+            display: flex;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+        
+        .ai-message-container.user {
+            flex-direction: row-reverse;
+        }
+        
+        .ai-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background-color: #007aff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        .ai-message {
+            background-color: #f2f2f7;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-top-left-radius: 4px;
+            margin-bottom: 12px;
+            max-width: 80%;
+        }
+        
+        .ai-message.user {
+            background-color: #007aff;
+            color: white;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 4px;
+        }
+        
+        .ai-message-time {
+            font-size: 12px;
+            color: #86868b;
+            margin-top: 4px;
+            text-align: right;
+        }
+        
+        .ai-tag-recommendation {
+            background-color: #f2f2f7;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .ai-tag-actions {
+            display: flex;
+            margin-top: 16px;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .ai-tag-action {
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            background-color: transparent;
+            border: 1px solid #007aff;
+            color: #007aff;
+            cursor: pointer;
+        }
+        
+        .ai-tag-action.primary {
+            background-color: #007aff;
+            color: white;
+        }
+        
+        .ai-tag-recommendation-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1d1d1f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ai-tag-select-all {
+            font-size: 13px;
+            color: #007aff;
+            cursor: pointer;
+        }
+        
+        .ai-tag-recommendation-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .ai-tag {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 16px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1d1d1f;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .ai-tag:hover {
+            background-color: #e5f3ff;
+        }
+        
+        .ai-tag.primary {
+            background-color: #e5f3ff;
+            color: #007aff;
+        }
+        
+        .ai-tag.selected {
+            background-color: #e5f3ff;
+            color: #007aff;
+            border: 1px solid #007aff;
+        }
+        
+        .ai-tag .checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            border: 1px solid #c7c7cc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .ai-tag.selected .checkbox {
+            background-color: #007aff;
+            border-color: #007aff;
+        }
+        
+        .ai-tag .check-icon {
+            color: white;
+            font-size: 12px;
+            display: none;
+        }
+        
+        .ai-tag.selected .check-icon {
+            display: block;
+        }
+        
+        .ai-confirmation {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 24px;
+            background-color: #f2f2f7;
+            border-radius: 20px;
+            margin-top: 16px;
+        }
+        
+        .ai-confirmation-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background-color: #34c759;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        
+        .ai-confirmation-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+        
+        .ai-confirmation-text {
+            font-size: 15px;
+            color: #86868b;
+            margin-bottom: 20px;
+        }
+        
+        .ai-quick-replies {
+            display: flex;
+            overflow-x: auto;
+            gap: 8px;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            scrollbar-width: none;
+        }
+        
+        .ai-quick-replies::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .ai-quick-reply {
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            background-color: #f2f2f7;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .ai-quick-reply:hover {
+            background-color: #e5e5ea;
+        }
+        
+        .ai-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 16px;
+            background-color: white;
+            border-top: 1px solid #e5e5ea;
+        }
+        
+        .ai-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e5e5ea;
+            border-radius: 24px;
+            font-size: 16px;
+            background-color: #f2f2f7;
+        }
+        
+        .ai-input button {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .ai-skill-level {
+            margin-top: 24px;
+        }
+        
+        .ai-skill-level-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ai-skill-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+        
+        .ai-skill-row {
+            border-bottom: 1px solid #e5e5ea;
+        }
+        
+        .ai-skill-tag {
+            padding: 12px 8px;
+            font-size: 15px;
+            color: #1d1d1f;
+        }
+        
+        .ai-skill-levels {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .ai-skill-level-item {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border-radius: 15px;
+            background-color: #f2f2f7;
+            color: #86868b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .ai-skill-level-item:hover {
+            background-color: #e5e5ea;
+        }
+        
+        .ai-skill-level-item.selected {
+            background-color: #007aff;
+            color: white;
+        }
+        
+        .ai-apply-button {
+            margin-top: 24px;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+        
+        .ai-apply-button:hover {
+            background-color: #0071e3;
+        }
     </style>
 </head>
 <body>
@@ -915,7 +1246,76 @@
                         </svg>
                         AI助手
                     </div>
+                    
                     <h1 class="interest-title">选择你的兴趣领域</h1>
+                    
+                    <div class="tag-search-container">
+                        <div class="tag-search-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </div>
+                        <input type="text" class="tag-search-input" placeholder="搜索你感兴趣的领域或技能">
+                        <div class="tag-search-clear">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </div>
+                        
+                        <div class="search-results">
+                            <div class="search-result-section">
+                                <div class="search-result-title">精准匹配</div>
+                                <div class="search-result-item">
+                                    <div>
+                                        <div class="search-result-name">UI设计</div>
+                                        <div class="search-result-category">设计 > 视觉设计</div>
+                                    </div>
+                                    <div class="search-result-add">+</div>
+                                </div>
+                            </div>
+                            
+                            <div class="search-result-section">
+                                <div class="search-result-title">相关推荐</div>
+                                <div class="search-result-item">
+                                    <div>
+                                        <div class="search-result-name">UI/UX设计</div>
+                                        <div class="search-result-category">设计 > 交互设计</div>
+                                    </div>
+                                    <div class="search-result-add">+</div>
+                                </div>
+                                <div class="search-result-item">
+                                    <div>
+                                        <div class="search-result-name">移动UI设计</div>
+                                        <div class="search-result-category">设计 > 产品设计</div>
+                                    </div>
+                                    <div class="search-result-add">+</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 搜索无结果状态 -->
+                            <!--
+                            <div class="search-no-results">
+                                <div class="search-no-results-text">未找到相关标签，交给AI助手试试？</div>
+                                <button class="search-no-results-action">让AI助手帮我找</button>
+                            </div>
+                            -->
+                        </div>
+                    </div>
+                    
+                    <div class="finder-tip">
+                        <div class="tip-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="16"></line>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                        </div>
+                        <div class="tip-text">
+                            找不到合适的标签？点击右上角的<span class="tip-highlight">AI助手</span>，快速找到你的专业领域
+                        </div>
+                    </div>
                     
                     <div class="category-selector">
                         <h2 class="category-title">主要领域</h2>
@@ -978,6 +1378,16 @@
                                     </svg>
                                 </div>
                                 <span class="category-name">创意</span>
+                            </div>
+                            <div class="category-item">
+                                <div class="category-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                                    </svg>
+                                </div>
+                                <span class="category-name">更多</span>
                             </div>
                         </div>
                     </div>
