@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finder - 设计展示</title>
+    <style>
+        /* 基础样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .device-frame {
+            width: 375px;
+            height: 812px;
+            background-color: white;
+            border-radius: 40px;
+            position: relative;
+            margin: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .notch {
+            width: 150px;
+            height: 30px;
+            background-color: black;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            z-index: 10;
+        }
+        
+        .ios-status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 20px;
+            font-size: 12px;
+            color: #1d1d1f;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .home-indicator {
+            width: 134px;
+            height: 5px;
+            background-color: black;
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 3px;
+        }
+        
+        .screen-content {
+            height: 100%;
+            position: relative;
+        }
+        
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        
+        .slide-up {
+            animation: slideUp 0.8s ease-out;
+        }
+        
+        .bounce {
+            animation: bounce 2s infinite;
+        }
+        
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* 启动页样式 */
+        .splash-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: linear-gradient(135deg, #007AFF, #34C759);
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 24px;
+            animation: logoPop 1s ease-out;
+        }
+        
+        .brand-name {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+            animation: slideUp 0.8s ease-out 0.3s both;
+        }
+        
+        .slogan {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            animation: slideUp 0.8s ease-out 0.5s both;
+        }
+        
+        .mascot {
+            width: 160px;
+            height: 160px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* 新手引导页样式 */
+        .onboarding-screen {
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .onboarding-slide {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .onboarding-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 16px;
+        }
+        
+        .onboarding-text {
+            font-size: 17px;
+            color: #86868b;
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+        
+        .onboarding-illustration {
+            width: 240px;
+            height: 240px;
+            margin-bottom: 40px;
+        }
+        
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 40px;
+        }
+        
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e5e5ea;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-dot.active {
+            background-color: #007aff;
+            width: 24px;
+        }
+        
+        .skip-button {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 14px;
+            color: #86868b;
+            z-index: 10;
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 标签选择页样式 */
+        .interest-screen {
+            height: 100%;
+            padding: 24px;
+            position: relative;
+        }
+        
+        .ai-assistant {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background-color: #007aff;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+        
+        .ai-assistant:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+        }
+        
+        .ai-dialog {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 100;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ai-dialog.show {
+            transform: translateY(0);
+        }
+        
+        .ai-dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f2f2f7;
+        }
+        
+        .ai-dialog-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+        
+        .ai-close-button {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #f2f2f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .ai-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background-color: #007aff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        .ai-message-container {
+            display: flex;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+        
+        .ai-message-container.user {
+            flex-direction: row-reverse;
+        }
+        
+        .ai-message {
+            background-color: #f2f2f7;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-top-left-radius: 4px;
+            margin-bottom: 12px;
+            max-width: 80%;
+        }
+        
+        .ai-message.user {
+            background-color: #007aff;
+            color: white;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 4px;
+        }
+        
+        .ai-message-time {
+            font-size: 12px;
+            color: #86868b;
+            margin-top: 4px;
+            text-align: right;
+        }
+        
+        .ai-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            position: sticky;
+            bottom: 0;
+            background-color: white;
+            padding-top: 12px;
+        }
+        
+        .ai-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e5e5ea;
+            border-radius: 24px;
+            font-size: 16px;
+            background-color: #f2f2f7;
+        }
+        
+        .ai-input button {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tag-recommendation {
+            background-color: #f2f2f7;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .tag-recommendation-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1d1d1f;
+        }
+        
+        .tag-recommendation-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .recommended-tag {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 16px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1d1d1f;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .recommended-tag:hover {
+            background-color: #e5f3ff;
+        }
+        
+        .recommended-tag.primary {
+            background-color: #e5f3ff;
+            color: #007aff;
+        }
+        
+        .recommended-tag .add-icon {
+            color: #34c759;
+            font-size: 16px;
+        }
+        
+        .recommended-tag .check-icon {
+            color: #34c759;
+        }
+        
+        .user-level-selector {
+            margin-top: 24px;
+        }
+        
+        .user-level-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1d1d1f;
+        }
+        
+        .level-options {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .level-option {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            border: 1px solid #e5e5ea;
+            color: #86868b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .level-option.selected {
+            background-color: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+        
+        .category-selector {
+            margin-top: 32px;
+        }
+        
+        .category-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+        
+        .category-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .category-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background-color: #f2f2f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .category-item:hover .category-icon {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .category-item.selected .category-icon {
+            background-color: #007aff;
+            color: white;
+        }
+        
+        .category-name {
+            font-size: 14px;
+            color: #1d1d1f;
+            text-align: center;
+        }
+        
+        .interest-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .bubble-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        
+        .bubble {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #007aff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+        
+        .bubble:hover {
+            transform: scale(1.1);
+        }
+        
+        .bubble.selected {
+            background-color: #34c759;
+            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+        }
+        
+        .progress-bar {
+            width: 200px;
+            height: 4px;
+            background-color: #e5e5ea;
+            border-radius: 2px;
+            margin: 40px auto;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #007aff;
+            transition: width 0.3s ease;
+        }
+        
+        /* 首页样式 */
+        .home-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: #f5f7fa;
+        }
+        
+        .home-header {
+            padding: 16px;
+            background-color: white;
+            border-bottom: 1px solid #e5e5ea;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background-color: #007aff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: #f2f2f7;
+            border-radius: 12px;
+            padding: 10px 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+        
+        .search-icon {
+            margin-right: 8px;
+            color: #86868b;
+        }
+        
+        .search-input {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #1d1d1f;
+        }
+        
+        .search-input:focus {
+            outline: none;
+        }
+        
+        .category-tabs {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 8px 16px;
+            background-color: white;
+            position: sticky;
+            top: 77px;
+            z-index: 5;
+            border-bottom: 1px solid #e5e5ea;
+            scrollbar-width: none;
+        }
+        
+        .category-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .category-tab {
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            white-space: nowrap;
+            color: #86868b;
+            transition: all 0.2s ease;
+        }
+        
+        .category-tab.active {
+            background-color: #007aff;
+            color: white;
+        }
+        
+        .question-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        
+        .question-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .question-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .asker-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            margin-right: 12px;
+            background-color: #f2f2f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .asker-info {
+            flex: 1;
+        }
+        
+        .asker-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 2px;
+        }
+        
+        .question-time {
+            font-size: 12px;
+            color: #86868b;
+        }
+        
+        .question-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .question-content {
+            font-size: 15px;
+            color: #4c4c4e;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .question-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .question-tag {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            background-color: #f2f2f7;
+            color: #4c4c4e;
+        }
+        
+        .question-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #86868b;
+        }
+        
+        .question-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .tab-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            background-color: white;
+            border-top: 1px solid #e5e5ea;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+        
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #86868b;
+            font-size: 10px;
+        }
+        
+        .tab-item.active {
+            color: #007aff;
+        }
+        
+        .tab-icon {
+            width: 26px;
+            height: 26px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .floating-button {
+            position: fixed;
+            bottom: 80px;
+            right: 16px;
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background-color: #007aff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+        
+        .floating-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.5);
+        }
+        
+        /* 动画定义 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes logoPop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+        <!-- 启动页 -->
+        <div class="device-frame">
+            <div class="notch"></div>
+            <div class="ios-status-bar">
+                <span>5G</span>
+                <span>14:22</span>
+                <span>100%</span>
+            </div>
+            <div class="screen-content">
+                <div class="splash-screen">
+                    <div class="logo">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 8v8"></path>
+                            <path d="M8 12h8"></path>
+                        </svg>
+                    </div>
+                    <h1 class="brand-name">Finder</h1>
+                    <p class="slogan">专业问答，精准匹配</p>
+                    <div class="mascot">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                            <path d="M12 11v4"></path>
+                            <path d="M9 13h6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="home-indicator"></div>
+            <div class="screen-label">启动页</div>
+            <div class="dimensions">375 × 812</div>
+        </div>
+        
+        <!-- 新手引导页 -->
+        <div class="device-frame">
+            <div class="notch"></div>
+            <div class="ios-status-bar">
+                <span>5G</span>
+                <span>14:22</span>
+                <span>100%</span>
+            </div>
+            <div class="screen-content">
+                <div class="onboarding-screen">
+                    <div class="skip-button">跳过</div>
+                    <div class="onboarding-slide">
+                        <div class="onboarding-illustration">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                <path d="M8 10h8"></path>
+                                <path d="M8 14h6"></path>
+                            </svg>
+                        </div>
+                        <h2 class="onboarding-title">专业问答社区</h2>
+                        <p class="onboarding-text">连接行业专家，获取专业解答，让每个问题都能得到满意的答案</p>
+                        <div class="progress-dots">
+                            <div class="progress-dot active"></div>
+                            <div class="progress-dot"></div>
+                            <div class="progress-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="home-indicator"></div>
+            <div class="screen-label">新手引导页</div>
+            <div class="dimensions">375 × 812</div>
+        </div>
+        
+        <!-- 标签选择页 -->
+        <div class="device-frame">
+            <div class="notch"></div>
+            <div class="ios-status-bar">
+                <span>5G</span>
+                <span>14:22</span>
+                <span>100%</span>
+            </div>
+            <div class="screen-content">
+                <div class="interest-screen">
+                    <div class="ai-assistant">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H12z"></path>
+                            <path d="M12 12v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8"></path>
+                            <path d="M2 12h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"></path>
+                        </svg>
+                        AI助手
+                    </div>
+                    <h1 class="interest-title">选择你的兴趣领域</h1>
+                    
+                    <div class="category-selector">
+                        <h2 class="category-title">主要领域</h2>
+                        <div class="category-list">
+                            <div class="category-item selected">
+                                <div class="category-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="6"></circle>
+                                        <circle cx="12" cy="12" r="2"></circle>
+                                    </svg>
+                                </div>
+                                <span class="category-name">设计</span>
+                            </div>
+                            <div class="category-item">
+                                <div class="category-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                        <path d="M12 11h4"></path>
+                                        <path d="M12 16h4"></path>
+                                        <path d="M8 11h.01"></path>
+                                        <path d="M8 16h.01"></path>
+                                    </svg>
+                                </div>
+                                <span class="category-name">产品</span>
+                            </div>
+                            <div class="category-item">
+                                <div class="category-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="16 18 22 12 16 6"></polyline>
+                                        <polyline points="8 6 2 12 8 18"></polyline>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    </svg>
+                                </div>
+                                <span class="category-name">技术</span>
+                            </div>
+                            <div class="category-item">
+                                <div class="category-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg>
+                                </div>
+                                <span class="category-name">商业</span>
+                            </div>
+                            <div class="category-item">
+                                <div class="category-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                    </svg>
+                                </div>
+                                <span class="category-name">教育</span>
+                            </div>
+                            <div class="category-item">
+                                <div class="category-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                </div>
+                                <span class="category-name">创意</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bubble-container">
+                        <div class="bubble">UI设计</div>
+                        <div class="bubble">UX设计</div>
+                        <div class="bubble selected">交互设计</div>
+                        <div class="bubble">产品设计</div>
+                        <div class="bubble">品牌设计</div>
+                        <div class="bubble">动效设计</div>
+                    </div>
+                    
+                    <div class="user-level-selector">
+                        <h3 class="user-level-title">你的熟练程度</h3>
+                        <div class="level-options">
+                            <div class="level-option">入门学习者</div>
+                            <div class="level-option selected">有基础知识</div>
+                            <div class="level-option">实践经验者</div>
+                            <div class="level-option">专业从业者</div>
+                            <div class="level-option">资深专家</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 70%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ai-dialog">
+                <div class="ai-dialog-header">
+                    <div class="ai-dialog-title">AI 标签助手</div>
+                    <div class="ai-close-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="ai-message-container">
+                    <div class="ai-avatar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H12z"></path>
+                            <path d="M12 12v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8"></path>
+                            <path d="M2 12h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="ai-message">你好！我是Finder的AI助手，可以帮助你找到最适合的专业标签。请问你的专业背景是什么？</div>
+                        <div class="ai-message-time">14:23</div>
+                    </div>
+                </div>
+                
+                <div class="ai-message-container user">
+                    <div class="ai-message user">我是一名UI设计师，有3年工作经验</div>
+                    <div class="ai-message-time">14:23</div>
+                </div>
+                
+                <div class="ai-message-container">
+                    <div class="ai-avatar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H12z"></path>
+                            <path d="M12 12v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8"></path>
+                            <path d="M2 12h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="ai-message">非常好！你最近在关注哪些UI设计的趋势或技术？</div>
+                        <div class="ai-message-time">14:23</div>
+                    </div>
+                </div>
+                
+                <div class="ai-message-container user">
+                    <div class="ai-message user">我最近在研究设计系统和微交互动效，也在关注AR/VR界面设计</div>
+                    <div class="ai-message-time">14:24</div>
+                </div>
+                
+                <div class="ai-message-container">
+                    <div class="ai-avatar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H12z"></path>
+                            <path d="M12 12v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8"></path>
+                            <path d="M2 12h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="ai-message">
+                            根据你的背景和兴趣，我为你推荐以下标签：
+                            <div class="tag-recommendation">
+                                <div class="tag-recommendation-title">主要标签</div>
+                                <div class="tag-recommendation-list">
+                                    <div class="recommended-tag primary">
+                                        <span>UI设计</span>
+                                        <span class="check-icon">✓</span>
+                                    </div>
+                                    <div class="recommended-tag primary">
+                                        <span>交互设计</span>
+                                        <span class="add-icon">+</span>
+                                    </div>
+                                    <div class="recommended-tag primary">
+                                        <span>设计系统</span>
+                                        <span class="add-icon">+</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tag-recommendation">
+                                <div class="tag-recommendation-title">扩展标签</div>
+                                <div class="tag-recommendation-list">
+                                    <div class="recommended-tag">
+                                        <span>微交互</span>
+                                        <span class="add-icon">+</span>
+                                    </div>
+                                    <div class="recommended-tag">
+                                        <span>动效设计</span>
+                                        <span class="add-icon">+</span>
+                                    </div>
+                                    <div class="recommended-tag">
+                                        <span>AR/VR UI</span>
+                                        <span class="add-icon">+</span>
+                                    </div>
+                                    <div class="recommended-tag">
+                                        <span>用户体验</span>
+                                        <span class="add-icon">+</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="user-level-selector">
+                                <div class="user-level-title">你的熟练程度</div>
+                                <div class="level-options">
+                                    <div class="level-option">入门学习者</div>
+                                    <div class="level-option">有基础知识</div>
+                                    <div class="level-option selected">实践经验者</div>
+                                    <div class="level-option">专业从业者</div>
+                                    <div class="level-option">资深专家</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ai-message-time">14:24</div>
+                    </div>
+                </div>
+                
+                <div class="ai-input">
+                    <input type="text" placeholder="输入你的回答...">
+                    <button>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="home-indicator"></div>
+            <div class="screen-label">标签选择页</div>
+            <div class="dimensions">375 × 812</div>
+        </div>
+        
+        <!-- 首页 -->
+        <div class="device-frame">
+            <div class="notch"></div>
+            <div class="ios-status-bar">
+                <span>5G</span>
+                <span>14:22</span>
+                <span>100%</span>
+            </div>
+            <div class="screen-content">
+                <div class="home-screen">
+                    <div class="home-header">
+                        <div class="header-top">
+                            <h1 class="app-title">Finder</h1>
+                            <div class="user-avatar">C</div>
+                        </div>
+                        <div class="search-bar">
+                            <div class="search-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </div>
+                            <input type="text" class="search-input" placeholder="搜索问题或标签">
+                        </div>
+                    </div>
+                    
+                    <div class="category-tabs">
+                        <div class="category-tab active">全部</div>
+                        <div class="category-tab">设计</div>
+                        <div class="category-tab">产品</div>
+                        <div class="category-tab">技术</div>
+                        <div class="category-tab">商业</div>
+                        <div class="category-tab">教育</div>
+                        <div class="category-tab">创意</div>
+                    </div>
+                    
+                    <div class="question-list">
+                        <div class="question-card">
+                            <div class="question-header">
+                                <div class="asker-avatar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#86868b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="asker-info">
+                                    <div class="asker-name">李小明</div>
+                                    <div class="question-time">2小时前</div>
+                                </div>
+                            </div>
+                            <div class="question-title">如何构建一个完整的设计系统？</div>
+                            <div class="question-content">我最近在负责一个大型项目的UI设计，需要建立一套完整的设计系统，有什么好的方法或工具推荐吗？</div>
+                            <div class="question-tags">
+                                <div class="question-tag">UI设计</div>
+                                <div class="question-tag">设计系统</div>
+                                <div class="question-tag">Figma</div>
+                            </div>
+                            <div class="question-stats">
+                                <div class="question-stat">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    <span>5 回答</span>
+                                </div>
+                                <div class="question-stat">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                    </svg>
+                                    <span>12</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="question-card">
+                            <div class="question-header">
+                                <div class="asker-avatar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#86868b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="asker-info">
+                                    <div class="asker-name">王大力</div>
+                                    <div class="question-time">5小时前</div>
+                                </div>
+                            </div>
+                            <div class="question-title">产品经理和设计师的分工界限在哪里？</div>
+                            <div class="question-content">在工作中经常遇到职责不清的情况，特别是在需求确定和交互设计阶段，有经验的同行怎么处理这个问题？</div>
+                            <div class="question-tags">
+                                <div class="question-tag">产品设计</div>
+                                <div class="question-tag">团队协作</div>
+                                <div class="question-tag">职业发展</div>
+                            </div>
+                            <div class="question-stats">
+                                <div class="question-stat">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    <span>8 回答</span>
+                                </div>
+                                <div class="question-stat">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                    </svg>
+                                    <span>24</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="question-card">
+                            <div class="question-header">
+                                <div class="asker-avatar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#86868b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="asker-info">
+                                    <div class="asker-name">张小花</div>
+                                    <div class="question-time">昨天</div>
+                                </div>
+                            </div>
+                            <div class="question-title">如何利用AI提升设计工作流程？</div>
+                            <div class="question-content">最近AI工具发展很快，有没有可以集成到设计流程中的好工具，帮助提高效率？</div>
+                            <div class="question-tags">
+                                <div class="question-tag">AI</div>
+                                <div class="question-tag">设计工具</div>
+                                <div class="question-tag">效率</div>
+                            </div>
+                            <div class="question-stats">
+                                <div class="question-stat">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    <span>15 回答</span>
+                                </div>
+                                <div class="question-stat">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                    </svg>
+                                    <span>42</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="floating-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                    
+                    <div class="tab-bar">
+                        <div class="tab-item active">
+                            <div class="tab-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                            </div>
+                            <span>首页</span>
+                        </div>
+                        <div class="tab-item">
+                            <div class="tab-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                    <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
+                                </svg>
+                            </div>
+                            <span>发现</span>
+                        </div>
+                        <div class="tab-item">
+                            <div class="tab-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                </svg>
+                            </div>
+                            <span>消息</span>
+                        </div>
+                        <div class="tab-item">
+                            <div class="tab-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <span>我的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="home-indicator"></div>
+            <div class="screen-label">首页</div>
+            <div class="dimensions">375 × 812</div>
+        </div>
+    </div>
+    
+    <script>
+        // 启动页动画
+        document.querySelectorAll('.logo, .brand-name, .slogan, .mascot').forEach(element => {
+            element.style.opacity = '0';
+            setTimeout(() => {
+                element.style.opacity = '1';
+            }, 100);
+        });
+        
+        // 新手引导页交互
+        document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                document.querySelectorAll('.progress-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+            });
+        });
+        
+        // 标签选择页交互
+        document.querySelectorAll('.bubble').forEach(bubble => {
+            bubble.addEventListener('click', function() {
+                if (!this.classList.contains('selected')) {
+                    this.classList.add('selected');
+                } else {
+                    this.classList.remove('selected');
+                }
+            });
+        });
+        
+        // 首页交互
+        document.querySelectorAll('.question-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+            });
+        });
+        
+        // 导航栏交互
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // AI助手交互
+        document.querySelector('.ai-assistant').addEventListener('click', function() {
+            document.querySelector('.ai-dialog').classList.add('show');
+        });
+        
+        // 关闭AI对话框
+        document.querySelector('.ai-close-button').addEventListener('click', function() {
+            document.querySelector('.ai-dialog').classList.remove('show');
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.ai-dialog') && !e.target.closest('.ai-assistant')) {
+                document.querySelector('.ai-dialog').classList.remove('show');
+            }
+        });
+        
+        // AI输入处理
+        document.querySelector('.ai-input button').addEventListener('click', function() {
+            const input = document.querySelector('.ai-input input');
+            const message = input.value.trim();
+            if (message) {
+                const messageTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                // 创建用户消息
+                const userMessageContainer = document.createElement('div');
+                userMessageContainer.className = 'ai-message-container user';
+                
+                const userMessage = document.createElement('div');
+                userMessage.className = 'ai-message user';
+                userMessage.textContent = message;
+                
+                const userMessageTime = document.createElement('div');
+                userMessageTime.className = 'ai-message-time';
+                userMessageTime.textContent = messageTime;
+                
+                userMessageContainer.appendChild(userMessage);
+                userMessageContainer.appendChild(userMessageTime);
+                
+                // 插入到对话框
+                document.querySelector('.ai-dialog').insertBefore(userMessageContainer, document.querySelector('.ai-input'));
+                input.value = '';
+                
+                // 模拟AI回复
+                setTimeout(() => {
+                    // 创建AI回复容器
+                    const aiMessageContainer = document.createElement('div');
+                    aiMessageContainer.className = 'ai-message-container';
+                    
+                    // 创建AI头像
+                    const aiAvatar = document.createElement('div');
+                    aiAvatar.className = 'ai-avatar';
+                    aiAvatar.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H12z"></path>
+                            <path d="M12 12v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8"></path>
+                            <path d="M2 12h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"></path>
+                        </svg>
+                    `;
+                    
+                    // 创建消息内容容器
+                    const messageContentContainer = document.createElement('div');
+                    
+                    // 创建AI回复消息
+                    const aiMessage = document.createElement('div');
+                    aiMessage.className = 'ai-message';
+                    aiMessage.textContent = '感谢你的回答！我会根据你的信息继续调整推荐标签。你有什么特定的技术或工具需要添加吗？';
+                    
+                    // 创建AI消息时间
+                    const aiMessageTime = document.createElement('div');
+                    aiMessageTime.className = 'ai-message-time';
+                    aiMessageTime.textContent = messageTime;
+                    
+                    // 组装消息
+                    messageContentContainer.appendChild(aiMessage);
+                    messageContentContainer.appendChild(aiMessageTime);
+                    aiMessageContainer.appendChild(aiAvatar);
+                    aiMessageContainer.appendChild(messageContentContainer);
+                    
+                    // 插入到对话框
+                    document.querySelector('.ai-dialog').insertBefore(aiMessageContainer, document.querySelector('.ai-input'));
+                }, 1000);
+            }
+        });
+
+        // 添加键盘事件 - 按回车发送消息
+        document.querySelector('.ai-input input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.querySelector('.ai-input button').click();
+            }
+        });
+
+        // 标签推荐交互
+        const recommendedTags = document.querySelectorAll('.recommended-tag');
+        recommendedTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                const addIcon = this.querySelector('.add-icon');
+                if (addIcon) {
+                    addIcon.className = 'check-icon';
+                    addIcon.textContent = '✓';
+                }
+            });
+        });
+
+        // 熟练度选择
+        const levelOptions = document.querySelectorAll('.level-option');
+        levelOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                levelOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // 类别选择
+        const categoryItems = document.querySelectorAll('.category-item');
+        categoryItems.forEach(item => {
+            item.addEventListener('click', function() {
+                categoryItems.forEach(cat => cat.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // 模拟加载对应类别的气泡标签
+                const bubbles = document.querySelector('.bubble-container');
+                
+                // 为了演示，我们根据不同类别显示不同的标签
+                const categories = {
+                    '设计': ['UI设计', 'UX设计', '交互设计', '产品设计', '品牌设计', '动效设计'],
+                    '产品': ['产品规划', '需求分析', '用户研究', '产品运营', '数据分析', 'A/B测试'],
+                    '技术': ['前端开发', '后端开发', '移动开发', '人工智能', '数据分析', '云计算'],
+                    '商业': ['营销策略', '品牌管理', '商业模式', '市场分析', '用户增长', '投资融资'],
+                    '教育': ['学习方法', '职业规划', '面试技巧', '自我提升', '考证攻略', '转行指南'],
+                    '创意': ['创意思维', '设计灵感', '创作方法', '创新模式', '内容创作', '创业点子']
+                };
+                
+                const categoryName = this.querySelector('.category-name').textContent;
+                const categoryTags = categories[categoryName] || [];
+                
+                // 更新气泡内容
+                bubbles.innerHTML = '';
+                categoryTags.forEach((tag, index) => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    if (index === 2) bubble.classList.add('selected');
+                    bubble.textContent = tag;
+                    bubbles.appendChild(bubble);
+                });
+                
+                // 添加气泡点击事件
+                const newBubbles = document.querySelectorAll('.bubble');
+                newBubbles.forEach(bubble => {
+                    bubble.addEventListener('click', function() {
+                        newBubbles.forEach(b => b.classList.remove('selected'));
+                        this.classList.add('selected');
+                    });
+                });
+            });
+        });
+
+        // 首页分类标签切换
+        const categoryTabs = document.querySelectorAll('.category-tab');
+        categoryTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                categoryTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 底部导航切换
+        const tabItems = document.querySelectorAll('.tab-item');
+        tabItems.forEach(item => {
+            item.addEventListener('click', function() {
+                tabItems.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html> 

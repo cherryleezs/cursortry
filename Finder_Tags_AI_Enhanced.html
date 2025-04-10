@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Finder 智能标签选择</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .device-frame {
+            width: 375px;
+            height: 812px;
+            background-color: #ffffff;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .notch {
+            position: absolute;
+            width: 180px;
+            height: 30px;
+            background-color: #000;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            z-index: 10;
+        }
+
+        .status-bar {
+            height: 44px;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: #ffffff;
+            position: relative;
+            z-index: 5;
+        }
+
+        .status-bar-time {
+            flex: 1;
+            text-align: center;
+        }
+
+        .status-bar-icons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background-color: #000;
+            border-radius: 100px;
+        }
+
+        .screen-content {
+            height: calc(100% - 44px);
+            overflow-y: auto;
+            position: relative;
+            background-color: #F8F9FD;
+        }
+
+        .header {
+            padding: 16px 20px;
+            background-color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 4;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1e293b;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-bar {
+            width: 100%;
+            height: 44px;
+            background-color: #F1F5F9;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .search-icon {
+            margin-right: 8px;
+            color: #64748b;
+        }
+
+        .search-input {
+            flex: 1;
+            height: 100%;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            color: #1e293b;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .clear-button {
+            color: #94a3b8;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai-assist-button {
+            position: absolute;
+            right: 10px;
+            bottom: -50px;
+            background: linear-gradient(135deg, #7C3AED, #4F46E5);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+
+        .ai-assist-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
+        }
+
+        .ai-assist-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-results {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            position: absolute;
+            width: 100%;
+            top: 50px;
+            left: 0;
+            z-index: 10;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .search-result-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-icon {
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-result-text {
+            flex: 1;
+        }
+
+        .search-result-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .search-result-subtitle {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .add-button {
+            color: #4F46E5;
+            background: rgba(79, 70, 229, 0.1);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .add-button:active {
+            background: rgba(79, 70, 229, 0.2);
+        }
+
+        .categories {
+            padding: 10px 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: sticky;
+            top: 0;
+            background-color: #ffffff;
+            z-index: 3;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-right: 8px;
+            background-color: #F1F5F9;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s ease;
+        }
+
+        .category.active {
+            background-color: #4F46E5;
+            color: white;
+        }
+
+        .tag-section {
+            padding: 20px;
+        }
+
+        .tag-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tag-count {
+            font-size: 14px;
+            font-weight: 400;
+            color: #64748b;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .tag {
+            padding: 8px 16px;
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .tag.selected {
+            background-color: #EEF2FF;
+            border-color: #C7D2FE;
+            color: #4F46E5;
+        }
+
+        .tag-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tag:active {
+            transform: scale(0.98);
+        }
+
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 16px 20px;
+            background-color: #ffffff;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            z-index: 5;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .confirm-button {
+            width: 100%;
+            height: 54px;
+            background: linear-gradient(135deg, #7C3AED, #4F46E5);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .confirm-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
+        }
+
+        .confirm-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .scale-in {
+            animation: scaleIn 0.3s ease forwards;
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+
+        /* AI 提示层样式 */
+        .ai-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 100;
+            width: max-content;
+            max-width: 250px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+        }
+
+        .ai-tooltip::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            transform: rotate(45deg);
+        }
+
+        .ai-tooltip.bottom::after {
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+        }
+
+        .ai-tooltip.top::after {
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+        }
+
+        .ai-tooltip.left::after {
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+        }
+
+        .ai-tooltip.right::after {
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="status-bar">
+            <div></div>
+            <div class="status-bar-time">9:41</div>
+            <div class="status-bar-icons">
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+                    <path d="M1 0.5H16C16.2761 0.5 16.5 0.723858 16.5 1V11C16.5 11.2761 16.2761 11.5 16 11.5H1C0.723858 11.5 0.5 11.2761 0.5 11V1C0.5 0.723858 0.723858 0.5 1 0.5Z" stroke="black"/>
+                    <path d="M17 4H20V8H17V4Z" fill="black"/>
+                </svg>
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C10.1569 2 11.5 3.34315 11.5 5V7C11.5 8.65685 10.1569 10 8.5 10C6.84315 10 5.5 8.65685 5.5 7V5C5.5 3.34315 6.84315 2 8.5 2ZM3.5 5C3.5 2.23858 5.73858 0 8.5 0C11.2614 0 13.5 2.23858 13.5 5V7C13.5 9.76142 11.2614 12 8.5 12C5.73858 12 3.5 9.76142 3.5 7V5ZM0.5 5C0.5 4.44772 0.947715 4 1.5 4C2.05228 4 2.5 4.44772 2.5 5V7C2.5 7.55228 2.05228 8 1.5 8C0.947715 8 0.5 7.55228 0.5 7V5ZM14.5 5C14.5 4.44772 14.9477 4 15.5 4C16.0523 4 16.5 4.44772 16.5 5V7C16.5 7.55228 16.0523 8 15.5 8C14.9477 8 14.5 7.55228 14.5 7V5Z" fill="black"/>
+                </svg>
+                <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+                    <rect opacity="0.35" x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="black"/>
+                    <path opacity="0.4" d="M23 4V8C23.8284 8 24.5 7.32843 24.5 6.5V5.5C24.5 4.67157 23.8284 4 23 4Z" fill="black"/>
+                    <rect x="2" y="2" width="18" height="8" rx="1.5" fill="black"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="screen-content">
+            <div class="header">
+                <h1>添加你感兴趣的标签</h1>
+                <div class="search-container">
+                    <div class="search-bar">
+                        <div class="search-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" stroke="#64748B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <input type="text" class="search-input" placeholder="搜索标签、话题或领域" id="search-input">
+                        <button class="clear-button" id="clear-button" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M12 4L4 12M4 4L12 12" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="search-results" id="search-results">
+                        <!-- 搜索结果将在这里动态添加 -->
+                    </div>
+                </div>
+                <button class="ai-assist-button scale-in">
+                    <div class="ai-assist-icon">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 1.875C5.51777 1.875 1.875 5.51777 1.875 10C1.875 14.4822 5.51777 18.125 10 18.125C14.4822 18.125 18.125 14.4822 18.125 10C18.125 5.51777 14.4822 1.875 10 1.875Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 8.125V13.125" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 6.25C10.3452 6.25 10.625 5.97018 10.625 5.625C10.625 5.27982 10.3452 5 10 5C9.65482 5 9.375 5.27982 9.375 5.625C9.375 5.97018 9.65482 6.25 10 6.25Z" fill="white"/>
+                        </svg>
+                    </div>
+                    AI 智能推荐
+                </button>
+            </div>
+
+            <div class="categories" id="categories">
+                <div class="category active" data-category="all">全部</div>
+                <div class="category" data-category="design">设计</div>
+                <div class="category" data-category="product">产品</div>
+                <div class="category" data-category="tech">技术</div>
+                <div class="category" data-category="career">职业发展</div>
+                <div class="category" data-category="learning">学习成长</div>
+            </div>
+
+            <div class="tag-section fade-in" id="design-section">
+                <div class="tag-section-title">
+                    设计领域 <span class="tag-count"><span id="design-count">0</span>/5</span>
+                </div>
+                <div class="tags-container">
+                    <div class="tag" data-category="design" data-tag="UI设计">
+                        <span class="tag-icon">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M13.3332 8.66666V12C13.3332 12.7364 12.7363 13.3333 11.9998 13.3333H3.99984C3.26346 13.3333 2.6665 12.7364 2.6665 12V4.00001C2.6665 3.26363 3.26346 2.66667 3.99984 2.66667H7.33317" stroke="#475569" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M6.6665 9.33333L8.6665 11.3333L13.9998 5.99999" stroke="#475569" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        UI设计
+                    </div>
+                    <div class="tag" data-category="design" data-tag="UX设计">UX设计</div>
+                    <div class="tag" data-category="design" data-tag="交互设计">交互设计</div>
+            <!-- 内容区域将在这里添加 -->
+        </div>
+        
+        <div class="home-indicator"></div>
+    </div>
+
+    <script>
+        // JavaScript 代码将在这里添加
+    </script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finder 设计展示画布</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        
+        .canvas {
+            width: 100%;
+            min-height: 100vh;
+            background-color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+        }
+        
+        .canvas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .canvas-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .canvas-meta {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .screens-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+        
+        .screen-frame {
+            position: relative;
+            width: 375px;
+            border-radius: 40px;
+            background-color: #fff;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .screen-label {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 50px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .color-palette {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .color-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .color-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .color-value {
+            font-size: 12px;
+            color: #94a3b8;
+            font-family: monospace;
+        }
+        
+        .component-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .component-item {
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .component-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        
+        /* 嵌入标签选择界面样式 */
+        .device-frame {
+            width: 375px;
+            height: 812px;
+            background-color: #fff;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .notch {
+            position: absolute;
+            width: 180px;
+            height: 30px;
+            background-color: #000;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            z-index: 10;
+        }
+        
+        .status-bar {
+            height: 44px;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: #fff;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .screen-content {
+            height: calc(100% - 44px);
+            background-color: #F8F9FD;
+        }
+        
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background-color: #000;
+            border-radius: 100px;
+        }
+        
+        .header {
+            padding: 16px 20px;
+            background-color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 4;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1e293b;
+        }
+        
+        .search-bar {
+            width: 100%;
+            height: 44px;
+            background-color: #F1F5F9;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            margin-bottom: 16px;
+        }
+        
+        .tag-section {
+            padding: 20px;
+        }
+        
+        .tag-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        
+        .tag {
+            padding: 8px 16px;
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+        }
+        
+        .tag.selected {
+            background-color: #EEF2FF;
+            border-color: #C7D2FE;
+            color: #4F46E5;
+        }
+        
+        .bottom-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 16px 20px;
+            background-color: #fff;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            z-index: 5;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .confirm-button {
+            width: 100%;
+            height: 54px;
+            background: linear-gradient(135deg, #7C3AED, #4F46E5);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="canvas">
+        <div class="canvas-header">
+            <div>
+                <h1 class="canvas-title">Finder 标签选择界面</h1>
+                <p class="canvas-meta">设计展示 | 更新于 2023年4月11日</p>
+            </div>
+        </div>
+        
+        <section>
+            <div class="screens-container">
+                <!-- 标签选择界面 -->
+                <div>
+                    <div class="device-frame">
+                        <div class="notch"></div>
+                        <div class="status-bar">
+                            <div></div>
+                            <div>9:41</div>
+                            <div></div>
+                        </div>
+                        <div class="screen-content">
+                            <div class="header">
+                                <h1>添加你感兴趣的标签</h1>
+                                <div class="search-bar">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <path d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" stroke="#64748B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span style="margin-left:10px;color:#94a3b8;">搜索标签、话题或领域</span>
+                                </div>
+                                <button style="position:absolute;right:20px;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:white;border:none;border-radius:20px;padding:10px 16px;font-size:14px;font-weight:600;">
+                                    AI 智能推荐
+                                </button>
+                            </div>
+                            
+                            <div style="padding:10px 20px;overflow-x:auto;white-space:nowrap;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                                <span style="display:inline-block;padding:8px 16px;margin-right:8px;background:#4F46E5;color:white;border-radius:100px;font-size:14px;">全部</span>
+                                <span style="display:inline-block;padding:8px 16px;margin-right:8px;background:#F1F5F9;color:#64748b;border-radius:100px;font-size:14px;">设计</span>
+                                <span style="display:inline-block;padding:8px 16px;margin-right:8px;background:#F1F5F9;color:#64748b;border-radius:100px;font-size:14px;">产品</span>
+                                <span style="display:inline-block;padding:8px 16px;margin-right:8px;background:#F1F5F9;color:#64748b;border-radius:100px;font-size:14px;">技术</span>
+                            </div>
+                            
+                            <div class="tag-section">
+                                <div class="tag-section-title">
+                                    设计领域 <span style="font-size:14px;font-weight:400;color:#64748b;">1/5</span>
+                                </div>
+                                <div class="tags-container">
+                                    <div class="tag selected">UI设计</div>
+                                    <div class="tag">UX设计</div>
+                                    <div class="tag">交互设计</div>
+                                    <div class="tag">视觉设计</div>
+                                    <div class="tag">产品设计</div>
+                                    <div class="tag">设计系统</div>
+                                </div>
+                            </div>
+                            
+                            <div class="tag-section">
+                                <div class="tag-section-title">
+                                    产品领域 <span style="font-size:14px;font-weight:400;color:#64748b;">0/5</span>
+                                </div>
+                                <div class="tags-container">
+                                    <div class="tag">产品管理</div>
+                                    <div class="tag">产品策略</div>
+                                    <div class="tag">数据分析</div>
+                                    <div class="tag">用户增长</div>
+                                    <div class="tag">产品运营</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="home-indicator"></div>
+                        <div class="bottom-actions">
+                            <button class="confirm-button">
+                                完成 1/15
+                            </button>
+                        </div>
+                    </div>
+                    <div class="screen-label">标签选择界面</div>
+                </div>
+
+                <!-- AI 推荐界面 -->
+                <div>
+                    <div class="device-frame">
+                        <div class="notch"></div>
+                        <div class="status-bar">
+                            <div></div>
+                            <div>9:41</div>
+                            <div></div>
+                        </div>
+                        <div class="screen-content" style="background:#fff;">
+                            <div style="padding:16px 20px;border-bottom:1px solid #f2f2f7;display:flex;justify-content:space-between;align-items:center;">
+                                <h2 style="font-size:18px;font-weight:600;color:#1d1d1f;">AI 标签助手</h2>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M18 6L6 18M6 6L18 18" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            
+                            <div style="padding:20px;display:flex;margin-bottom:20px;">
+                                <div style="width:36px;height:36px;border-radius:18px;background:#4F46E5;color:white;display:flex;align-items:center;justify-content:center;margin-right:12px;">AI</div>
+                                <div>
+                                    <div style="background:#f2f2f7;padding:12px 16px;border-radius:18px;border-top-left-radius:4px;font-size:16px;color:#1d1d1f;line-height:1.4;max-width:80%;">
+                                        你好！我是Finder的AI助手，可以帮助你找到最适合的专业标签。请问你的专业背景是什么？
+                                    </div>
+                                    <div style="font-size:12px;color:#86868b;margin-top:4px;text-align:right;">14:23</div>
+                                </div>
+                            </div>
+                            
+                            <div style="padding:20px;display:flex;flex-direction:row-reverse;margin-bottom:20px;">
+                                <div style="background:#4F46E5;padding:12px 16px;border-radius:18px;border-top-right-radius:4px;font-size:16px;color:white;line-height:1.4;max-width:80%;">
+                                    我是一名UI设计师，有3年工作经验
+                                </div>
+                            </div>
+                            
+                            <div style="padding:20px;display:flex;margin-bottom:20px;">
+                                <div style="width:36px;height:36px;border-radius:18px;background:#4F46E5;color:white;display:flex;align-items:center;justify-content:center;margin-right:12px;">AI</div>
+                                <div>
+                                    <div style="background:#f2f2f7;padding:12px 16px;border-radius:18px;border-top-left-radius:4px;font-size:16px;color:#1d1d1f;line-height:1.4;max-width:80%;">
+                                        根据你的背景，我为你推荐以下标签：
+                                        <div style="background:#f2f2f7;border-radius:16px;padding:16px;margin-top:16px;">
+                                            <div style="font-size:16px;font-weight:600;margin-bottom:12px;color:#1d1d1f;">主要标签</div>
+                                            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                                <div style="display:flex;align-items:center;background:#e5f3ff;border-radius:16px;padding:8px 12px;font-size:14px;color:#4F46E5;gap:6px;">
+                                                    <span>UI设计</span>
+                                                    <span style="color:#34c759;">✓</span>
+                                                </div>
+                                                <div style="display:flex;align-items:center;background:white;border-radius:16px;padding:8px 12px;font-size:14px;color:#1d1d1f;gap:6px;">
+                                                    <span>交互设计</span>
+                                                    <span style="color:#34c759;">+</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="font-size:12px;color:#86868b;margin-top:4px;text-align:right;">14:24</div>
+                                </div>
+                            </div>
+                            
+                            <div style="position:absolute;bottom:0;left:0;width:100%;padding:16px 20px;border-top:1px solid #f2f2f7;background:#fff;display:flex;gap:8px;">
+                                <input style="flex:1;padding:12px 16px;border:1px solid #e5e5ea;border-radius:24px;font-size:16px;background:#f2f2f7;" placeholder="输入你的回答...">
+                                <button style="background:#4F46E5;color:white;border:none;width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                        <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="home-indicator"></div>
+                    </div>
+                    <div class="screen-label">AI 推荐界面</div>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2 class="section-title">设计系统</h2>
+            
+            <!-- 颜色系统 -->
+            <h3 style="font-size: 18px; margin-bottom: 15px;">颜色系统</h3>
+            <div class="color-palette">
+                <div class="color-item">
+                    <div class="color-circle" style="background-color: #4F46E5;"></div>
+                    <div class="color-label">主色调</div>
+                    <div class="color-value">#4F46E5</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-circle" style="background-color: #7C3AED;"></div>
+                    <div class="color-label">强调色</div>
+                    <div class="color-value">#7C3AED</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-circle" style="background-color: #1e293b;"></div>
+                    <div class="color-label">主文本</div>
+                    <div class="color-value">#1e293b</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-circle" style="background-color: #64748b;"></div>
+                    <div class="color-label">次要文本</div>
+                    <div class="color-value">#64748b</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-circle" style="background-color: #f8fafc;"></div>
+                    <div class="color-label">背景色</div>
+                    <div class="color-value">#f8fafc</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-circle" style="background-color: #34c759;"></div>
+                    <div class="color-label">成功色</div>
+                    <div class="color-value">#34c759</div>
+                </div>
+            </div>
+            
+            <!-- 组件系统 -->
+            <h3 style="font-size: 18px; margin-bottom: 15px;">组件系统</h3>
+            <div class="component-list">
+                <div class="component-item">
+                    <div class="component-title">标签组件</div>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="padding: 8px 16px; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 100px; font-size: 14px;">默认标签</div>
+                        <div style="padding: 8px 16px; background-color: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 100px; font-size: 14px; color: #4F46E5;">选中标签</div>
+                    </div>
+                </div>
+                
+                <div class="component-item">
+                    <div class="component-title">按钮组件</div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button style="padding: 8px 16px; background: linear-gradient(135deg, #7C3AED, #4F46E5); color: white; border: none; border-radius: 16px; font-size: 14px; font-weight: 600;">主要按钮</button>
+                        <button style="padding: 8px 16px; background-color: transparent; color: #4F46E5; border: 1px solid #4F46E5; border-radius: 16px; font-size: 14px; font-weight: 600;">次要按钮</button>
+                    </div>
+                </div>
+                
+                <div class="component-item">
+                    <div class="component-title">搜索栏组件</div>
+                    <div style="width: 100%; height: 44px; background-color: #F1F5F9; border-radius: 12px; display: flex; align-items: center; padding: 0 12px; border: 1px solid rgba(0, 0, 0, 0.04);">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" stroke="#64748B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span style="margin-left:10px;color:#94a3b8;">搜索内容</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2 class="section-title">交互设计说明</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 40px;">
+                <div style="flex: 1; min-width: 300px;">
+                    <h3 style="font-size: 18px; margin-bottom: 15px;">智能标签选择</h3>
+                    <p style="line-height: 1.6; color: #475569; margin-bottom: 15px;">标签选择界面采用分类展示方式，用户可以快速切换不同领域。每个分类有数量限制（5个），确保用户选择精准有效的标签。标签选择时有明显的视觉反馈，采用柔和的蓝色填充和边框变化展示选中状态。</p>
+                    <p style="line-height: 1.6; color: #475569;">底部的确认按钮实时显示已选标签数量，当有标签被选中时会有脉冲发光特效，引导用户完成操作。</p>
+                </div>
+                
+                <div style="flex: 1; min-width: 300px;">
+                    <h3 style="font-size: 18px; margin-bottom: 15px;">AI 智能推荐</h3>
+                    <p style="line-height: 1.6; color: #475569; margin-bottom: 15px;">AI助手采用对话式交互，通过询问用户专业背景和兴趣，智能推荐相关标签。推荐标签分为主要标签和扩展标签，帮助用户更精准地表达专业领域。</p>
+                    <p style="line-height: 1.6; color: #475569;">用户可以直接在对话界面中点击添加标签，系统会自动同步到标签选择界面。AI助手还会根据用户已选标签提供更个性化的推荐。</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
