@@ -1,0 +1,3423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finder 设计展示</title>
+    <style>
+        :root {
+            /* 品牌主色调 */
+            --primary-color: #6366F1;
+            --primary-dark: #5153cc;
+            --primary-light: #8388FF;
+            --primary-gradient: linear-gradient(135deg, #6366F1, #8B5CF6);
+            --primary-gradient-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8));
+            
+            /* 功能色 */
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --error-color: #EF4444;
+            --info-color: #3B82F6;
+            
+            /* 文本色 */
+            --text-primary: #1F2937;
+            --text-secondary: #4B5563;
+            --text-tertiary: #9CA3AF;
+            --text-light: #F9FAFB;
+            
+            /* 边框和背景 */
+            --border-color: #E5E7EB;
+            --background-primary: #FFFFFF;
+            --background-secondary: #F3F4F6;
+            --background-tertiary: #E5E7EB;
+            --background-subtle: #F9FAFB;
+            
+            /* 阴影 */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+            --shadow-primary: 0 4px 10px rgba(99, 102, 241, 0.25);
+            
+            /* 字体 */
+            --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --font-size-title-large: 28px;
+            --font-size-title: 24px;
+            --font-size-subtitle: 20px;
+            --font-size-body: 17px;
+            --font-size-caption: 14px;
+            --font-size-small: 12px;
+            
+            /* 行高和字距 */
+            --line-height-normal: 1.5;
+            --line-height-tight: 1.25;
+            --letter-spacing-tight: -0.01em;
+            --letter-spacing-wide: 0.01em;
+            
+            /* 圆角 */
+            --radius-small: 8px;
+            --radius-medium: 12px;
+            --radius-large: 16px;
+            --radius-full: 9999px;
+            
+            /* 间距 */
+            --spacing-xxs: 2px;
+            --spacing-xs: 4px;
+            --spacing-small: 8px;
+            --spacing-medium: 16px;
+            --spacing-large: 24px;
+            --spacing-xl: 32px;
+            --spacing-xxl: 48px;
+            
+            /* 内边距 */
+            --padding-xs: 8px;
+            --padding-small: 12px;
+            --padding-medium: 16px;
+            --padding-large: 20px;
+            --padding-xl: 24px;
+            
+            /* 过渡效果 */
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+            --transition-slow: 0.35s ease;
+            
+            /* 亮点颜色 */
+            --highlight-color: #6366F1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            line-height: var(--line-height-normal);
+            background-color: #F5F5F5;
+        }
+        
+        /* 设备框架样式增强 */
+        .device-frame {
+            position: relative;
+            width: 375px;
+            height: 812px;
+            background-color: var(--background-primary);
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin: 40px auto;
+            transition: transform var(--transition-normal);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .device-frame:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12), 0 15px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 210px;
+            height: 30px;
+            background-color: #000;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            z-index: 4;
+        }
+        
+        .ios-status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px 0;
+            height: 44px;
+            font-size: var(--font-size-small);
+            font-weight: 600;
+            color: #000;
+            background-color: transparent;
+            position: relative;
+            z-index: 3;
+        }
+        
+        .screen-content {
+            position: relative;
+            height: calc(100% - 30px);
+            overflow: hidden;
+        }
+        
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 5px;
+            background-color: #000;
+            border-radius: 3px;
+            z-index: 3;
+        }
+        
+        .screen-label {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .dimensions {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: var(--font-size-small);
+            color: var(--text-tertiary);
+        }
+        
+        /* 增强按钮样式 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+            border-radius: var(--radius-medium);
+            padding: 0 var(--padding-medium);
+            font-size: var(--font-size-body);
+            font-weight: 600;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .btn:active::after {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
+        }
+        
+        .btn-secondary {
+            background-color: var(--background-secondary);
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:active {
+            background-color: var(--background-tertiary);
+        }
+        
+        .btn-small {
+            height: 38px;
+            font-size: var(--font-size-caption);
+            padding: 0 var(--padding-small);
+            border-radius: var(--radius-small);
+        }
+        
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            width: 40px;
+            border-radius: var(--radius-full);
+            background-color: var(--background-subtle);
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+        
+        .btn-icon:active {
+            background-color: var(--background-tertiary);
+            transform: scale(0.95);
+        }
+        
+        /* 增强卡片样式 */
+        .card {
+            background-color: var(--background-primary);
+            border-radius: var(--radius-medium);
+            padding: var(--padding-medium);
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        
+        .card:active {
+            transform: translateY(1px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* 增强标签样式 */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-small);
+            font-weight: 500;
+            background-color: var(--background-secondary);
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        
+        .tag-primary {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .tag-small {
+            padding: 4px 8px;
+            font-size: var(--font-size-small);
+        }
+        
+        /* 增强文本样式 */
+        .title-large {
+            font-size: var(--font-size-title-large);
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: var(--letter-spacing-tight);
+            margin-bottom: var(--spacing-medium);
+            line-height: var(--line-height-tight);
+        }
+        
+        .title {
+            font-size: var(--font-size-title);
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: var(--letter-spacing-tight);
+            margin-bottom: var(--spacing-small);
+            line-height: var(--line-height-tight);
+        }
+        
+        /* 添加动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+        
+        .animate-fade {
+            animation: fadeIn var(--transition-normal) forwards;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp var(--transition-normal) forwards;
+        }
+        
+        .animate-slide-in {
+            animation: slideIn var(--transition-normal) forwards;
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* 增强互动效果的类 */
+        .interactive {
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .interactive:active {
+            transform: scale(0.97);
+        }
+        
+        .hover-lift {
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .hover-highlight:hover {
+            background-color: var(--background-subtle);
+        }
+        
+        /* 首页样式 - iOS风格 */
+        .home-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-secondary);
+        }
+        
+        .home-header {
+            padding: var(--padding-large) var(--padding-large) var(--padding-medium);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--background-primary);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .back-button {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: var(--font-size-body);
+        }
+        
+        .home-header h2 {
+            font-size: var(--font-size-title);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            position: relative;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--warning-color);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        .main-card {
+            background-color: var(--background-primary);
+            margin: var(--spacing-medium);
+            border-radius: var(--radius-large);
+            padding: var(--padding-large) var(--padding-medium);
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .main-card:active {
+            transform: scale(0.98);
+        }
+        
+        .main-card h2 {
+            font-size: var(--font-size-subtitle);
+            margin-bottom: var(--spacing-medium);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .action-btn {
+            background-color: var(--background-secondary);
+            padding: var(--padding-medium);
+            border-radius: var(--radius-medium);
+            margin: var(--spacing-small) 0;
+            text-align: center;
+            font-weight: 500;
+            font-size: var(--font-size-body);
+            color: var(--primary-color);
+            transition: background-color 0.2s ease;
+        }
+        
+        .action-btn:active {
+            background-color: var(--background-tertiary);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-medium);
+            margin: var(--spacing-medium);
+        }
+        
+        .feature-card {
+            background-color: var(--background-primary);
+            border-radius: var(--radius-medium);
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:active {
+            transform: scale(0.98);
+        }
+        
+        .feature-card h3 {
+            font-size: var(--font-size-caption);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: var(--spacing-small) 0 0;
+        }
+        
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 122, 255, 0.1);
+            border-radius: var(--radius-small);
+            margin-bottom: var(--spacing-small);
+        }
+        
+        .large-card {
+            grid-column: 1 / span 1;
+            grid-row: 1 / span 2;
+            height: 255px;
+        }
+        
+        .large-card .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius-medium);
+        }
+        
+        .large-card h3 {
+            font-size: var(--font-size-body);
+        }
+        
+        .tab-bar {
+            height: 80px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: var(--background-primary);
+            border-top: 1px solid var(--background-tertiary);
+            padding-bottom: 20px;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: var(--font-size-small);
+            padding: var(--spacing-small) 0;
+            width: 25%;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-item.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .tab-icon {
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .tab-item.active .tab-icon {
+            color: var(--primary-color);
+        }
+        
+        /* 我要提问页样式优化 */
+        .ask-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-subtle);
+        }
+        
+        .ask-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: none;
+            background-color: white;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .header-title {
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--text-primary);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        
+        .cancel-button {
+            color: var(--primary-color);
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .cancel-button:active {
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+        
+        .ask-form {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-label {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-label::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+            margin-right: 8px;
+        }
+        
+        .form-input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 16px;
+            background-color: white;
+            color: var(--text-primary);
+            outline: none;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .form-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        
+        .form-textarea {
+            height: 120px;
+            resize: none;
+            line-height: 1.5;
+        }
+        
+        .tag-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .tag-item {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 14px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .tag-item:active {
+            transform: scale(0.95);
+        }
+        
+        .tag-item.selected {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .tag-add {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-top: 10px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .tag-add:active {
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+        
+        .ask-actions {
+            padding: 15px 20px 30px;
+            display: flex;
+            gap: 15px;
+            background-color: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .action-button {
+            flex: 1;
+            padding: 14px 0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .button-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .button-primary:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
+        }
+        
+        .button-secondary {
+            background-color: #f4f5f7;
+            color: #666;
+        }
+        
+        .button-secondary:active {
+            transform: translateY(1px);
+            background-color: #e8e9ec;
+        }
+        
+        /* 我要回答页样式 */
+        .answer-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-image: linear-gradient(to bottom, #f8f9fc, #f3f4f9);
+        }
+        
+        .answer-header {
+            padding: 16px 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: #f5f7fa;
+            border-radius: 12px;
+            padding: 10px 15px;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+        
+        .search-bar:focus-within {
+            background-color: white;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+        
+        .search-icon {
+            margin-right: 10px;
+            color: #a0aec0;
+        }
+        
+        .search-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            color: var(--text-color);
+            outline: none;
+        }
+        
+        .search-input::placeholder {
+            color: #a0aec0;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            padding: 12px 20px;
+            gap: 15px;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .filter-tabs::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, rgba(0,0,0,0.01), rgba(0,0,0,0.05), rgba(0,0,0,0.01));
+        }
+        
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+            background-color: white;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .filter-tab:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .filter-tab.active {
+            color: white;
+            background: var(--primary-gradient);
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25);
+        }
+        
+        .question-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+        }
+        
+        .question-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+            animation: slideUp 0.4s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        
+        .question-card:nth-child(1) { animation-delay: 0.1s; }
+        .question-card:nth-child(2) { animation-delay: 0.2s; }
+        .question-card:nth-child(3) { animation-delay: 0.3s; }
+        .question-card:nth-child(4) { animation-delay: 0.4s; }
+        
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .question-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+        
+        .question-time {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 2px;
+        }
+        
+        .question-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .question-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .question-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .question-tag {
+            background-color: #f5f7fa;
+            color: #6b7280;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        
+        .question-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            color: #6b7280;
+            font-size: 13px;
+        }
+        
+        .stat-icon {
+            margin-right: 4px;
+        }
+        
+        .answer-button {
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25);
+            transition: all 0.2s ease;
+        }
+        
+        .answer-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(139, 92, 246, 0.2);
+        }
+        
+        /* 热门问题页样式 - 新版本 */
+        .hot-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-subtle);
+        }
+        
+        .hot-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-bottom: none;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .hot-title {
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: white;
+            margin-bottom: 1px;
+            position: relative;
+            z-index: 4;
+            letter-spacing: var(--letter-spacing-tight);
+            display: flex;
+            align-items: center;
+        }
+        
+        .hot-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+            margin-right: 10px;
+        }
+        
+        .hot-list {
+            flex: 1;
+            padding: 15px 20px 80px;
+            overflow-y: auto;
+        }
+        
+        .hot-item {
+            background-color: var(--background-subtle);
+            border-radius: 16px;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            position: relative;
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all var(--transition-fast);
+        }
+        
+        .hot-item:active {
+            transform: translateY(1px);
+            background-color: #eef1f8;
+        }
+        
+        .hot-item:nth-child(1) { animation-delay: 0.1s; }
+        .hot-item:nth-child(2) { animation-delay: 0.2s; }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .hot-item-number {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .hot-item:nth-child(1) .hot-item-number {
+            color: #f43f5e;
+        }
+        
+        .hot-item:nth-child(2) .hot-item-number {
+            color: #ec4899;
+        }
+        
+        .hot-item:nth-child(3) .hot-item-number {
+            color: #8b5cf6;
+        }
+        
+        .hot-item-content {
+            margin-left: 30px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+        
+        .hot-item-title {
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 1.4;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        
+        .hot-item-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .hot-item-answers {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background-color: var(--background-subtle);
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        
+        .hot-item-time {
+            color: var(--text-tertiary);
+        }
+        
+        .tab-bar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            padding-bottom: 20px;
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        /* 专业人士页面样式优化 */
+        .experts-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-subtle);
+        }
+        
+        .experts-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-bottom: none;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .experts-tabs {
+            display: flex;
+            padding: 12px 15px 15px;
+            background: white;
+            overflow-x: auto;
+            margin-bottom: 1px;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+        
+        .experts-tabs::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,1));
+            pointer-events: none;
+        }
+        
+        .experts-tab {
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            white-space: nowrap;
+            color: var(--text-secondary);
+            margin-right: 10px;
+            transition: all var(--transition-fast);
+            border: 1px solid transparent;
+        }
+        
+        .experts-tab:not(.active):hover {
+            background-color: var(--background-secondary);
+            color: var(--text-primary);
+        }
+        
+        .experts-tab.active {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .experts-list {
+            flex: 1;
+            padding: 15px 20px 80px;
+            overflow-y: auto;
+        }
+        
+        .expert-card {
+            background-color: white;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow-md);
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+        
+        .expert-card:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .expert-card:nth-child(1) { animation-delay: 0.1s; }
+        .expert-card:nth-child(2) { animation-delay: 0.2s; }
+        .expert-card:nth-child(3) { animation-delay: 0.3s; }
+        
+        .expert-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .expert-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--primary-gradient);
+            margin-right: 15px;
+            position: relative;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+            border: 2px solid white;
+        }
+        
+        .expert-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform var(--transition-normal);
+        }
+        
+        .expert-card:active .expert-avatar img {
+            transform: scale(1.05);
+        }
+        
+        .expert-info {
+            flex: 1;
+        }
+        
+        .expert-name {
+            font-weight: 600;
+            font-size: 17px;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        
+        .expert-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .expert-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+        }
+        
+        .expert-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .expert-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background-color: var(--background-subtle);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        
+        .expert-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .expert-tag {
+            padding: 4px 10px;
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        
+        .expert-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .expert-btn {
+            padding: 10px 0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
+            max-width: 48%;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .expert-btn.primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .expert-btn.primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 5px rgba(131, 88, 245, 0.3);
+        }
+        
+        .expert-btn.secondary {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .expert-btn.secondary:active {
+            background-color: rgba(99, 102, 241, 0.2);
+        }
+        
+        .tab-bar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            padding-bottom: 20px;
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: var(--font-size-small);
+            padding: var(--spacing-small) 0;
+            width: 25%;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-item.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .tab-icon {
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .tab-item.active .tab-icon {
+            color: var(--primary-color);
+        }
+        
+        /* 推荐问题页样式优化 */
+        .recommend-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-subtle);
+        }
+        
+        .recommend-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-bottom: none;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .recommend-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px 70px;
+        }
+        
+        .recommend-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 15px;
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        
+        .recommend-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 18px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+        
+        .recommend-card {
+            background-color: white;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            padding: 18px;
+            box-shadow: var(--shadow-md);
+            animation: slideUp 0.4s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all var(--transition-fast);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+        
+        .recommend-card:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .recommend-item {
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+        }
+        
+        .recommend-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin-right: 15px;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .recommend-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .recommend-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        
+        .recommend-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .recommend-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 0;
+        }
+        
+        .recommend-tag svg {
+            color: var(--primary-color);
+        }
+        
+        .more-recommend {
+            text-align: center;
+            padding: 15px 0;
+            font-weight: 500;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            margin: 5px 0 15px;
+            transition: all var(--transition-fast);
+            color: var(--primary-color);
+            font-size: 14px;
+        }
+        
+        .more-recommend:active {
+            background-color: rgba(99, 102, 241, 0.05);
+            transform: translateY(1px);
+        }
+        
+        /* 提问接受聊天界面样式 */
+        .accept-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fc;
+        }
+        
+        .accept-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-bottom: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .accept-container {
+            flex: 1;
+            padding: 15px 20px;
+            overflow-y: auto;
+        }
+        
+        .question-preview {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .asker-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .asker-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin-right: 15px;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        .asker-avatar::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 16px;
+            width: 15px;
+            height: 15px;
+            background-color: #d0d0d0;
+            border-radius: 50%;
+        }
+        
+        .asker-avatar::after {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 12px;
+            width: 24px;
+            height: 24px;
+            background-color: #d0d0d0;
+            border-radius: 50%;
+            transform: translateY(-5px);
+        }
+        
+        .asker-details {
+            flex: 1;
+        }
+        
+        .asker-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .asker-title {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .question-content {
+            margin-bottom: 15px;
+        }
+        
+        .question-preview-title {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .question-preview-text {
+            color: #555;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .question-attachment {
+            background-color: #f5f7fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .question-decision {
+            text-align: center;
+            margin: 25px 0 15px;
+        }
+        
+        .decision-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .decision-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .decision-btn {
+            width: 80px;
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-yes {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-yes:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 5px rgba(131, 88, 245, 0.3);
+        }
+        
+        .btn-no {
+            background-color: #f2f2f2;
+            color: #666;
+        }
+        
+        .btn-no:active {
+            background-color: #e5e5e5;
+        }
+        
+        .more-action {
+            margin-top: 30px;
+            padding: 15px 0;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+            font-weight: 500;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .more-action:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 5px rgba(131, 88, 245, 0.3);
+        }
+        
+        /* 问题待回答页样式优化 */
+        .qa-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-subtle);
+        }
+        
+        .qa-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-bottom: none;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .qa-section {
+            background-color: white;
+            margin-bottom: 10px;
+            padding: 15px 20px;
+            box-shadow: var(--shadow-sm);
+            border-radius: 12px;
+            margin: 15px 15px 10px;
+        }
+        
+        .qa-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid var(--primary-color);
+            letter-spacing: var(--letter-spacing-tight);
+        }
+        
+        .qa-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 70px;
+            padding: 0 5px 70px;
+        }
+        
+        .qa-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.4s ease forwards;
+            opacity: 0;
+            transition: transform var(--transition-fast);
+        }
+        
+        .qa-item:active {
+            transform: translateX(5px);
+        }
+        
+        .qa-item:nth-child(1) { animation-delay: 0.1s; }
+        .qa-item:nth-child(2) { animation-delay: 0.2s; }
+        .qa-item:nth-child(3) { animation-delay: 0.3s; }
+        
+        .qa-user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin-right: 15px;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .qa-user-avatar::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 14px;
+            width: 12px;
+            height: 12px;
+            background-color: #d0d0d0;
+            border-radius: 50%;
+        }
+        
+        .qa-user-avatar::after {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            background-color: #d0d0d0;
+            border-radius: 50%;
+            transform: translateY(-5px);
+        }
+        
+        .qa-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .qa-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .qa-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .qa-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        
+        .qa-tag svg {
+            color: var(--primary-color);
+        }
+        
+        .more-questions {
+            text-align: center;
+            padding: 15px 0;
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 14px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            margin: 5px 15px 15px;
+            transition: all var(--transition-fast);
+        }
+        
+        .more-questions:active {
+            background-color: rgba(99, 102, 241, 0.05);
+            transform: translateY(1px);
+        }
+        
+        /* 推荐问题页样式 - iOS风格 */
+        .recommend-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-secondary);
+        }
+        
+        .recommend-header {
+            padding: var(--padding-large) var(--padding-large) var(--padding-medium);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--background-primary);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .recommend-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--padding-medium) var(--padding-large) 70px;
+        }
+        
+        .recommend-title {
+            font-size: var(--font-size-subtitle);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-medium);
+        }
+        
+        .recommend-card {
+            background-color: var(--background-primary);
+            border-radius: var(--radius-medium);
+            margin-bottom: var(--spacing-medium);
+            padding: var(--padding-medium);
+            box-shadow: var(--card-shadow);
+            animation: slideUp 0.4s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        
+        .recommend-card:nth-child(1) { animation-delay: 0.05s; }
+        .recommend-card:nth-child(2) { animation-delay: 0.1s; }
+        .recommend-card:nth-child(3) { animation-delay: 0.15s; }
+        .recommend-card:nth-child(4) { animation-delay: 0.2s; }
+        .recommend-card:nth-child(5) { animation-delay: 0.25s; }
+        .recommend-card:nth-child(6) { animation-delay: 0.3s; }
+        
+        .recommend-item {
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+        }
+        
+        .recommend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--background-tertiary);
+            margin-right: var(--spacing-medium);
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        .recommend-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .recommend-text {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: var(--spacing-small);
+        }
+        
+        .recommend-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            background-color: rgba(0, 122, 255, 0.1);
+            color: var(--primary-color);
+            font-size: var(--font-size-small);
+            margin-right: var(--spacing-small);
+        }
+        
+        .recommend-tag svg {
+            margin-right: 4px;
+        }
+        
+        .more-recommend {
+            text-align: right;
+            margin-top: var(--spacing-xs);
+            padding: var(--spacing-small) 0;
+            color: var(--text-secondary);
+            font-size: var(--font-size-small);
+        }
+        
+        /* 提问接受聊天界面样式 - iOS风格 */
+        .accept-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-secondary);
+        }
+        
+        .accept-header {
+            padding: var(--padding-large) var(--padding-large) var(--padding-medium);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--background-primary);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .accept-container {
+            flex: 1;
+            padding: var(--padding-medium) var(--padding-large);
+            overflow-y: auto;
+        }
+        
+        .question-preview {
+            background-color: var(--background-primary);
+            border-radius: var(--radius-large);
+            box-shadow: var(--card-shadow);
+            padding: var(--padding-large);
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .asker-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-medium);
+        }
+        
+        .asker-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--background-tertiary);
+            margin-right: var(--spacing-medium);
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        .asker-details {
+            flex: 1;
+        }
+        
+        .asker-name {
+            font-weight: 600;
+            font-size: var(--font-size-body);
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+        
+        .asker-title {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+        }
+        
+        .question-content {
+            margin-bottom: var(--spacing-medium);
+        }
+        
+        .question-preview-title {
+            font-weight: 600;
+            font-size: var(--font-size-subtitle);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-small);
+            line-height: 1.4;
+        }
+        
+        .question-preview-text {
+            color: var(--text-secondary);
+            font-size: var(--font-size-body);
+            line-height: 1.5;
+            margin-bottom: var(--spacing-medium);
+        }
+        
+        .question-attachment {
+            background-color: var(--background-secondary);
+            border-radius: var(--radius-medium);
+            padding: var(--padding-medium);
+            margin-bottom: var(--spacing-medium);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: var(--font-size-caption);
+        }
+        
+        .question-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            background-color: rgba(0, 122, 255, 0.1);
+            color: var(--primary-color);
+            font-size: var(--font-size-small);
+        }
+        
+        .question-decision {
+            text-align: center;
+            margin: var(--spacing-large) 0 var(--spacing-medium);
+        }
+        
+        .decision-text {
+            font-size: var(--font-size-body);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-medium);
+        }
+        
+        .decision-buttons {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-large);
+        }
+        
+        .decision-btn {
+            width: 100px;
+            height: 44px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: var(--font-size-body);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-yes {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 3px 10px rgba(0, 122, 255, 0.3);
+        }
+        
+        .btn-no {
+            background-color: var(--background-tertiary);
+            color: var(--text-secondary);
+        }
+        
+        .more-action {
+            margin-top: var(--spacing-large);
+            padding: var(--padding-medium) 0;
+            background-color: var(--background-primary);
+            border-radius: var(--radius-medium);
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            font-weight: 500;
+            color: var(--primary-color);
+            font-size: var(--font-size-body);
+        }
+
+        /* 统一所有蓝色按钮的渐变样式 */
+        .action-button-blue {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            box-shadow: 0 2px 10px rgba(131, 88, 245, 0.3);
+        }
+        
+        .action-button-blue:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 5px rgba(131, 88, 245, 0.3);
+        }
+
+        /* 专家页面按钮的互动效果 */
+        .expert-btn.primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 5px rgba(131, 88, 245, 0.3);
+        }
+        
+        .expert-btn.secondary:active {
+            background-color: rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页 - 美化版本 -->
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>10:53</span>
+            <span>100%</span>
+        </div>
+        <div class="screen-content">
+            <div class="home-screen">
+                <div class="home-header">
+                    <div class="back-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </div>
+                    <h2>首页</h2>
+                    <div class="notification-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <div class="notification-badge"></div>
+                    </div>
+                </div>
+                
+                <div class="main-card">
+                    <h2>我想提问</h2>
+                    <div class="action-btn">点击提问</div>
+                </div>
+                
+                <div class="main-card">
+                    <h2>我想回答</h2>
+                    <div class="action-btn">点击回答</div>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card large-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                        </div>
+                        <h3>热门问题</h3>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <h3>优质答案</h3>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <h3>寻找同好</h3>
+                    </div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item active">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"></path>
+                                <polyline points="21 9 12 15 3 9"></polyline>
+                            </svg>
+                        </div>
+                        <span>商城</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            </svg>
+                        </div>
+                        <span>回馈</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+        <div class="screen-label">首页</div>
+        <div class="dimensions">375 × 812</div>
+    </div>
+    
+    <!-- 我要提问页 -->
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:23</span>
+            <span>100%</span>
+        </div>
+        <div class="screen-content">
+            <div class="ask-screen">
+                <div class="ask-header">
+                    <div class="header-title">我要提问</div>
+                    <div class="cancel-button">取消</div>
+                </div>
+                
+                <div class="ask-form">
+                    <div class="form-group">
+                        <label class="form-label">问题标题</label>
+                        <input type="text" class="form-input" placeholder="简洁明了的问题能吸引更多回答">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">问题描述</label>
+                        <textarea class="form-input form-textarea" placeholder="详细描述你的问题，提供足够的背景信息"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">添加标签</label>
+                        <div class="tag-selector">
+                            <div class="tag-item selected">UI设计</div>
+                            <div class="tag-item">交互设计</div>
+                            <div class="tag-item">用户体验</div>
+                            <div class="tag-item">产品设计</div>
+                            <div class="tag-item">设计系统</div>
+                        </div>
+                        <div class="tag-add">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="16"></line>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                            添加自定义标签
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">谁来回答</label>
+                        <div class="tag-selector">
+                            <div class="tag-item selected">所有人可见</div>
+                            <div class="tag-item">指定专业领域</div>
+                            <div class="tag-item">邀请特定专家</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ask-actions">
+                    <div class="action-button button-secondary">保存草稿</div>
+                    <div class="action-button button-primary">立即发布</div>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+        <div class="screen-label">我要提问</div>
+        <div class="dimensions">375 × 812</div>
+    </div>
+    
+    <!-- 我要回答页 -->
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>14:23</span>
+            <span>100%</span>
+        </div>
+        <div class="screen-content">
+            <div class="answer-screen">
+                <div class="answer-header">
+                    <div class="search-bar">
+                        <div class="search-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </div>
+                        <input type="text" class="search-input" placeholder="搜索感兴趣的问题">
+                    </div>
+                </div>
+                
+                <div class="filter-tabs">
+                    <div class="filter-tab active">全部</div>
+                    <div class="filter-tab">UI设计</div>
+                    <div class="filter-tab">交互设计</div>
+                    <div class="filter-tab">用户研究</div>
+                    <div class="filter-tab">视觉设计</div>
+                </div>
+                
+                <div class="question-list">
+                    <div class="question-card">
+                        <div class="user-info">
+                            <img src="https://source.unsplash.com/random/100x100?face=1" alt="用户头像" class="user-avatar">
+                            <div>
+                                <div class="user-name">张小明</div>
+                                <div class="question-time">10分钟前</div>
+                            </div>
+                        </div>
+                        <div class="question-title">如何在企业级产品中使用微动效提升用户体验？</div>
+                        <div class="question-desc">我正在设计一个企业级数据分析平台，想通过一些微交互动效来提升整体体验，但又不希望过于花哨影响专业性。有没有好的实践案例或建议？</div>
+                        <div class="question-tags">
+                            <div class="question-tag">交互设计</div>
+                            <div class="question-tag">动效设计</div>
+                            <div class="question-tag">企业产品</div>
+                        </div>
+                        <div class="question-stats">
+                            <div class="stat-item">
+                                <span class="stat-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                </span>
+                                0回答
+                            </div>
+                            <div class="answer-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                                回答
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="question-card">
+                        <div class="user-info">
+                            <img src="https://source.unsplash.com/random/100x100?face=2" alt="用户头像" class="user-avatar">
+                            <div>
+                                <div class="user-name">李思思</div>
+                                <div class="question-time">2小时前</div>
+                            </div>
+                        </div>
+                        <div class="question-title">如何建立一套完整的设计系统并有效地推广到团队中？</div>
+                        <div class="question-desc">我们团队正在从零开始构建设计系统，需要覆盖移动端和Web端，但遇到了很多挑战，特别是在需求确定和交互设计阶段，有经验的同行怎么处理这个问题？</div>
+                        <div class="question-tags">
+                            <div class="question-tag">设计系统</div>
+                            <div class="question-tag">团队协作</div>
+                            <div class="question-tag">UI设计</div>
+                        </div>
+                        <div class="question-stats">
+                            <div class="stat-item">
+                                <span class="stat-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                </span>
+                                3回答
+                            </div>
+                            <div class="answer-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                                回答
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="question-card">
+                        <div class="user-info">
+                            <img src="https://source.unsplash.com/random/100x100?face=3" alt="用户头像" class="user-avatar">
+                            <div>
+                                <div class="user-name">王大力</div>
+                                <div class="question-time">昨天 14:23</div>
+                            </div>
+                        </div>
+                        <div class="question-title">AI设计工具如何有效地融入UI设计流程？</div>
+                        <div class="question-desc">最近尝试了一些AI设计工具，想知道大家如何将这些工具有效地融入到实际UI设计流程中，提高效率又不失创意？有什么经验可以分享？</div>
+                        <div class="question-tags">
+                            <div class="question-tag">AI设计</div>
+                            <div class="question-tag">UI设计</div>
+                            <div class="question-tag">工作流程</div>
+                        </div>
+                        <div class="question-stats">
+                            <div class="stat-item">
+                                <span class="stat-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                </span>
+                                8回答
+                            </div>
+                            <div class="answer-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                                回答
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+        <div class="screen-label">我要回答</div>
+        <div class="dimensions">375 × 812</div>
+    </div>
+    
+    <!-- 热门问题页 - 新版本 -->
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>10:53</span>
+            <span>100%</span>
+        </div>
+        <div class="screen-content">
+            <div class="hot-questions-screen">
+                <div class="hot-header">
+                    <div class="back-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </div>
+                    <h2>首页</h2>
+                    <div class="notification-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <div class="notification-badge"></div>
+                    </div>
+                </div>
+                
+                <div class="hot-title">热门问题</div>
+                
+                <div class="hot-list">
+                    <div class="hot-item">
+                        <div class="hot-item-number">1</div>
+                        <div class="hot-item-content">
+                            <div class="hot-item-title">如何在企业级产品中使用微动效提升用户体验？</div>
+                            <div class="hot-item-meta">
+                                <div class="hot-item-answers">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    42回答
+                                </div>
+                                <div class="hot-item-time">2小时前</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="hot-item">
+                        <div class="hot-item-number">2</div>
+                        <div class="hot-item-content">
+                            <div class="hot-item-title">如何建立一套完整的设计系统并有效地推广到团队中？</div>
+                            <div class="hot-item-meta">
+                                <div class="hot-item-answers">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    36回答
+                                </div>
+                                <div class="hot-item-time">3小时前</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="hot-item">
+                        <div class="hot-item-number">3</div>
+                        <div class="hot-item-content">
+                            <div class="hot-item-title">AI设计工具如何有效地融入UI设计流程？</div>
+                            <div class="hot-item-meta">
+                                <div class="hot-item-answers">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    28回答
+                                </div>
+                                <div class="hot-item-time">4小时前</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="hot-item">
+                        <div class="hot-item-number">4</div>
+                        <div class="hot-item-content">
+                            <div class="hot-item-title">初级设计师如何提升专业能力和作品质量？</div>
+                            <div class="hot-item-meta">
+                                <div class="hot-item-answers">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    24回答
+                                </div>
+                                <div class="hot-item-time">6小时前</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="hot-item">
+                        <div class="hot-item-number">5</div>
+                        <div class="hot-item-content">
+                            <div class="hot-item-title">产品经理和设计师的分工界限在哪里？</div>
+                            <div class="hot-item-meta">
+                                <div class="hot-item-answers">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    22回答
+                                </div>
+                                <div class="hot-item-time">8小时前</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"></path>
+                                <polyline points="21 9 12 15 3 9"></polyline>
+                            </svg>
+                        </div>
+                        <span>商城</span>
+                    </div>
+                    <div class="tab-item active">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            </svg>
+                        </div>
+                        <span>回馈</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+        <div class="screen-label">热门问题</div>
+        <div class="dimensions">375 × 812</div>
+    </div>
+    
+    <!-- 专业人士页面 -->
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>10:53</span>
+            <span>100%</span>
+        </div>
+        <div class="screen-content">
+            <div class="experts-screen">
+                <div class="experts-header">
+                    <div class="back-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </div>
+                    <h2>专业人士</h2>
+                    <div class="filter-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="21" x2="4" y2="14"></line>
+                            <line x1="4" y1="10" x2="4" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12" y2="3"></line>
+                            <line x1="20" y1="21" x2="20" y2="16"></line>
+                            <line x1="20" y1="12" x2="20" y2="3"></line>
+                            <line x1="1" y1="14" x2="7" y2="14"></line>
+                            <line x1="9" y1="8" x2="15" y2="8"></line>
+                            <line x1="17" y1="16" x2="23" y2="16"></line>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="experts-tabs">
+                    <div class="experts-tab active">设计</div>
+                    <div class="experts-tab">产品</div>
+                    <div class="experts-tab">开发</div>
+                    <div class="experts-tab">运营</div>
+                    <div class="experts-tab">市场</div>
+                    <div class="experts-tab">数据</div>
+                </div>
+                
+                <div class="experts-list">
+                    <div class="expert-card">
+                        <div class="expert-header">
+                            <div class="expert-avatar">
+                                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80" alt="Avatar">
+                            </div>
+                            <div class="expert-info">
+                                <div class="expert-name">张晓燕</div>
+                                <div class="expert-title">资深UI设计师 @ 科技公司</div>
+                            </div>
+                        </div>
+                        
+                        <div class="expert-stats">
+                            <div class="expert-stat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                </svg>
+                                已回答 132
+                            </div>
+                            <div class="expert-stat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
+                                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
+                                好评率 98%
+                            </div>
+                        </div>
+                        
+                        <div class="expert-tags">
+                            <div class="expert-tag">UI设计</div>
+                            <div class="expert-tag">交互设计</div>
+                            <div class="expert-tag">设计系统</div>
+                        </div>
+                        
+                        <div class="expert-actions">
+                            <div class="expert-btn secondary">查看主页</div>
+                            <div class="expert-btn primary">请教问题</div>
+                        </div>
+                    </div>
+                    
+                    <div class="expert-card">
+                        <div class="expert-header">
+                            <div class="expert-avatar">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80" alt="Avatar">
+                            </div>
+                            <div class="expert-info">
+                                <div class="expert-name">李明宇</div>
+                                <div class="expert-title">产品设计总监 @ 互联网公司</div>
+                            </div>
+                        </div>
+                        
+                        <div class="expert-stats">
+                            <div class="expert-stat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                </svg>
+                                已回答 97
+                            </div>
+                            <div class="expert-stat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
+                                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
+                                好评率 95%
+                            </div>
+                        </div>
+                        
+                        <div class="expert-tags">
+                            <div class="expert-tag">UX设计</div>
+                            <div class="expert-tag">产品战略</div>
+                            <div class="expert-tag">设计管理</div>
+                        </div>
+                        
+                        <div class="expert-actions">
+                            <div class="expert-btn secondary">查看主页</div>
+                            <div class="expert-btn primary">请教问题</div>
+                        </div>
+                    </div>
+                    
+                    <div class="expert-card">
+                        <div class="expert-header">
+                            <div class="expert-avatar">
+                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80" alt="Avatar">
+                            </div>
+                            <div class="expert-info">
+                                <div class="expert-name">王思琪</div>
+                                <div class="expert-title">品牌设计师 @ 创意工作室</div>
+                            </div>
+                        </div>
+                        
+                        <div class="expert-stats">
+                            <div class="expert-stat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                </svg>
+                                已回答 78
+                            </div>
+                            <div class="expert-stat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
+                                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
+                                好评率 92%
+                            </div>
+                        </div>
+                        
+                        <div class="expert-tags">
+                            <div class="expert-tag">品牌设计</div>
+                            <div class="expert-tag">标识设计</div>
+                            <div class="expert-tag">视觉传达</div>
+                        </div>
+                        
+                        <div class="expert-actions">
+                            <div class="expert-btn secondary">查看主页</div>
+                            <div class="expert-btn primary">请教问题</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"></path>
+                                <polyline points="21 9 12 15 3 9"></polyline>
+                            </svg>
+                        </div>
+                        <span>商城</span>
+                    </div>
+                    <div class="tab-item active">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            </svg>
+                        </div>
+                        <span>回馈</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+        <div class="screen-label">专业人士</div>
+        <div class="dimensions">375 × 812</div>
+    </div>
+    
+    <!-- 问题待回答页 -->
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>10:53</span>
+            <span>100%</span>
+        </div>
+        <div class="screen-content">
+            <div class="qa-screen">
+                <div class="qa-header">
+                    <div class="back-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </div>
+                    <h2>Q&A</h2>
+                    <div class="notification-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <div class="notification-badge"></div>
+                    </div>
+                </div>
+                
+                <div class="qa-list">
+                    <div class="qa-section">
+                        <div class="qa-section-title">以下问题等待您的回答</div>
+                        
+                        <div class="qa-item">
+                            <div class="qa-user-avatar"></div>
+                            <div class="qa-content">
+                                <div class="qa-title">如何提高UI设计的整体质量和一致性？</div>
+                                <div class="qa-tags">
+                                    <span class="qa-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        UI设计
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="qa-item">
+                            <div class="qa-user-avatar"></div>
+                            <div class="qa-content">
+                                <div class="qa-title">设计团队如何更高效地协作？</div>
+                                <div class="qa-tags">
+                                    <span class="qa-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        团队协作
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="qa-item">
+                            <div class="qa-user-avatar"></div>
+                            <div class="qa-content">
+                                <div class="qa-title">Figma和Sketch哪个更适合UI设计工作？</div>
+                                <div class="qa-tags">
+                                    <span class="qa-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        设计工具
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="qa-section">
+                        <div class="qa-section-title">回答更多问题</div>
+                        
+                        <div class="qa-item">
+                            <div class="qa-user-avatar"></div>
+                            <div class="qa-content">
+                                <div class="qa-title">设计师如何与开发人员更好地沟通？</div>
+                                <div class="qa-tags">
+                                    <span class="qa-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        跨部门协作
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="qa-item">
+                            <div class="qa-user-avatar"></div>
+                            <div class="qa-content">
+                                <div class="qa-title">设计系统如何提高团队工作效率？</div>
+                                <div class="qa-tags">
+                                    <span class="qa-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        设计系统
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="qa-item">
+                            <div class="qa-user-avatar"></div>
+                            <div class="qa-content">
+                                <div class="qa-title">如何处理客户对设计方案的反馈？</div>
+                                <div class="qa-tags">
+                                    <span class="qa-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        客户沟通
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="more-questions">查看更多</div>
+                    </div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"></path>
+                                <polyline points="21 9 12 15 3 9"></polyline>
+                            </svg>
+                        </div>
+                        <span>商城</span>
+                    </div>
+                    <div class="tab-item active">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            </svg>
+                        </div>
+                        <span>回馈</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+        <div class="screen-label">问题待回答</div>
+        <div class="dimensions">375 × 812</div>
+    </div>
+    
+    <!-- 推荐问题页 -->
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>10:53</span>
+            <span>100%</span>
+        </div>
+        <div class="screen-content">
+            <div class="recommend-screen">
+                <div class="recommend-header">
+                    <div class="back-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </div>
+                    <h2>Q&A</h2>
+                    <div class="notification-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <div class="notification-badge"></div>
+                    </div>
+                </div>
+                
+                <div class="recommend-container">
+                    <div class="recommend-title">以下问题可能能回答</div>
+                    
+                    <div class="recommend-card">
+                        <div class="recommend-item">
+                            <div class="recommend-avatar"></div>
+                            <div class="recommend-content">
+                                <div class="recommend-text">如何评估用户体验设计的成功与否？有哪些量化指标可以参考？</div>
+                                <div class="recommend-tags">
+                                    <span class="recommend-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        用户体验
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommend-card">
+                        <div class="recommend-item">
+                            <div class="recommend-avatar"></div>
+                            <div class="recommend-content">
+                                <div class="recommend-text">在设计移动端应用时，如何平衡美观设计与性能需求？</div>
+                                <div class="recommend-tags">
+                                    <span class="recommend-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        移动端设计
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommend-card">
+                        <div class="recommend-item">
+                            <div class="recommend-avatar"></div>
+                            <div class="recommend-content">
+                                <div class="recommend-text">如何避免设计团队在长期项目中的设计倦怠？有什么保持创新的好方法？</div>
+                                <div class="recommend-tags">
+                                    <span class="recommend-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        团队管理
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommend-card">
+                        <div class="recommend-item">
+                            <div class="recommend-avatar"></div>
+                            <div class="recommend-content">
+                                <div class="recommend-text">设计系统在不同平台之间如何保持一致性又能适应各平台特性？</div>
+                                <div class="recommend-tags">
+                                    <span class="recommend-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        设计系统
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommend-card">
+                        <div class="recommend-item">
+                            <div class="recommend-avatar"></div>
+                            <div class="recommend-content">
+                                <div class="recommend-text">作为设计师，如何向非设计背景的利益相关者有效地传达设计决策的价值？</div>
+                                <div class="recommend-tags">
+                                    <span class="recommend-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        沟通技巧
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommend-card">
+                        <div class="recommend-item">
+                            <div class="recommend-avatar"></div>
+                            <div class="recommend-content">
+                                <div class="recommend-text">近年来AI工具对设计行业的影响有哪些？未来设计师需要掌握哪些新技能？</div>
+                                <div class="recommend-tags">
+                                    <span class="recommend-tag">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                        </svg>
+                                        AI与设计
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="more-recommend">查看更多 ></div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"></path>
+                                <polyline points="21 9 12 15 3 9"></polyline>
+                            </svg>
+                        </div>
+                        <span>商城</span>
+                    </div>
+                    <div class="tab-item active">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            </svg>
+                        </div>
+                        <span>回馈</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+        <div class="screen-label">推荐问题</div>
+        <div class="dimensions">375 × 812</div>
+    </div>
+    
+    <!-- 提问接受聊天界面 -->
+    <div class="device-frame">
+        <div class="notch"></div>
+        <div class="ios-status-bar">
+            <span>5G</span>
+            <span>10:53</span>
+            <span>100%</span>
+        </div>
+        <div class="screen-content">
+            <div class="accept-screen">
+                <div class="accept-header">
+                    <div class="back-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </div>
+                    <h2>Q&A</h2>
+                    <div class="notification-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="accept-container">
+                    <div class="question-preview">
+                        <div class="asker-info">
+                            <div class="asker-avatar"></div>
+                            <div class="asker-details">
+                                <div class="asker-name">张浩然</div>
+                                <div class="asker-title">初级UI设计师</div>
+                            </div>
+                        </div>
+                        
+                        <div class="question-content">
+                            <div class="question-preview-title">如何提高设计效率并保持创意质量？</div>
+                            <div class="question-preview-text">
+                                我是一名初级UI设计师，经常发现自己在设计过程中花费大量时间但效率不高，特别是在处理多个项目时。我想知道有什么方法可以提高工作效率的同时，又不会影响创意质量和设计水准？有哪些工具、流程或习惯可以推荐？
+                            </div>
+                            <div class="question-attachment">
+                                <span>设计作品截图</span>
+                            </div>
+                        </div>
+                        
+                        <div class="question-tag">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                            <span>UI设计</span>
+                        </div>
+                    </div>
+                    
+                    <div class="question-decision">
+                        <div class="decision-text">是否为TA解答疑惑？</div>
+                        <div class="decision-buttons">
+                            <div class="decision-btn btn-yes">是</div>
+                            <div class="decision-btn btn-no">否</div>
+                        </div>
+                    </div>
+                    
+                    <div class="more-action">通过链接邀请专家解答</div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"></path>
+                                <polyline points="21 9 12 15 3 9"></polyline>
+                            </svg>
+                        </div>
+                        <span>商城</span>
+                    </div>
+                    <div class="tab-item active">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            </svg>
+                        </div>
+                        <span>回馈</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="home-indicator"></div>
+        <div class="screen-label">提问接受聊天界面</div>
+        <div class="dimensions">375 × 812</div>
+    </div>
+    
+    <script>
+        // 标签选择交互
+        document.querySelectorAll('.tag-item').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const parent = this.parentElement;
+                if (parent.dataset.singleSelect) {
+                    parent.querySelectorAll('.tag-item').forEach(t => t.classList.remove('selected'));
+                }
+                this.classList.toggle('selected');
+            });
+        });
+        
+        // 主页标签切换
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // 底部导航栏交互
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabBar = this.parentElement;
+                tabBar.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // 问题卡片悬停效果
+        document.querySelectorAll('.question-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+            });
+        });
+        
+        // 热门标签切换
+        document.querySelectorAll('.tag-button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.tag-button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // 回答页标签切换
+        document.querySelectorAll('.answer-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.answer-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html> 
+</html> 
